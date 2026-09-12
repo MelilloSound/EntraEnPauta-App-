@@ -244,12 +244,47 @@ for (const [nombre, ancho] of [['escritorio', 1440], ['tablet', 768], ['móvil',
   await page.evaluate(() => scrollTo(0, 0));
 }
 
+// ── 8. Logotipo por tema ──────────────────────────────────────────────
+console.log('\n8. Logotipo');
+
+await page.setViewportSize({ width: 1440, height: 900 });
+const logoPorTema = await page.evaluate(async () => {
+  const img = document.getElementById('logoImg');
+  const btn = document.getElementById('temaBtn');
+  const raiz = document.documentElement;
+  const leer = () => img.getAttribute('src');
+  while (raiz.getAttribute('data-tema') !== 'light') btn.click();
+  const claro = leer();
+  btn.click();
+  const oscuro = leer();
+  return { claro, oscuro, tema: raiz.getAttribute('data-tema') };
+});
+check('tema claro → variante oscura del wordmark',
+  logoPorTema.claro === 'assets/melillo-sound.svg', logoPorTema.claro);
+check('tema oscuro → variante clara del wordmark',
+  logoPorTema.oscuro === 'assets/melillo-sound-dark.svg', logoPorTema.oscuro);
+
+for (const archivo of ['melillo-sound.svg', 'melillo-sound-dark.svg']) {
+  const cargado = await page.evaluate(async (f) => {
+    const i = new Image();
+    i.src = 'assets/' + f;
+    try { await i.decode(); return i.naturalWidth > 0; } catch (e) { return false; }
+  }, archivo);
+  check(`assets/${archivo} carga correctamente`, cargado);
+}
+
 // ── Capturas opcionales ───────────────────────────────────────────────
 if (conCapturas) {
   const dir = resolve(raiz, 'tests/output');
   mkdirSync(dir, { recursive: true });
   for (const [tema, etiqueta] of [['dark', 'oscuro'], ['light', 'claro']]) {
-    await page.evaluate(t => document.documentElement.setAttribute('data-tema', t), tema);
+    // Usamos el toggle real de la app: fijar data-tema a mano se saltaría
+    // aplicarTema() y la captura saldría con la variante equivocada del logo.
+    await page.evaluate(t => {
+      const btn = document.getElementById('temaBtn');
+      let giros = 0;
+      while (document.documentElement.getAttribute('data-tema') !== t && giros++ < 4) btn.click();
+    }, tema);
     await page.setViewportSize({ width: 1440, height: 1100 });
     await page.waitForTimeout(120);
     await page.screenshot({ path: `${dir}/escritorio-${etiqueta}.png`, fullPage: true });

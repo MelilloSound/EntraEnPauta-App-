@@ -11,7 +11,7 @@
 :root{
   --bg:#EEF1F5; --panel:#FFFFFF; --panel-2:#F6F8FA; --linea:#DCE2EA;
   --txt:#111826; --txt-2:#5A6779; --txt-3:#8B97A8;
-  --acento:#0D9488; --acento-txt:#FFFFFF; --anillo:rgba(13,148,136,.35);
+  --acento:#0E6E70; --acento-txt:#FFFFFF; --anillo:rgba(14,110,112,.35);
   --rosa:#EC4899; --teal:#14B8A6; --ambar:#F59E0B; --purpura:#A855F7; --rojo:#EF4444;
   --verde-d:#16A34A; --amarillo-d:#EAB308; --naranja-d:#F97316; --rojo-d:#DC2626;
   --sombra:0 1px 2px rgba(16,24,40,.05), 0 8px 24px -12px rgba(16,24,40,.18);
@@ -21,7 +21,7 @@
   :root:not([data-tema="light"]){
     --bg:#0B0F16; --panel:#131A24; --panel-2:#0F1620; --linea:#25303F;
     --txt:#E9EEF5; --txt-2:#9AA8BC; --txt-3:#6B7A90;
-    --acento:#2DD4BF; --acento-txt:#04211E; --anillo:rgba(45,212,191,.32);
+    --acento:#35B3B0; --acento-txt:#04211E; --anillo:rgba(53,179,176,.34);
     --verde-d:#22C55E; --amarillo-d:#FACC15; --naranja-d:#FB923C; --rojo-d:#F87171;
     --sombra:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
   }
@@ -244,23 +244,23 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
 .cta-wrap{max-width:940px; margin:0 auto; padding:0 16px 30px}
 .cta{
   position:relative; overflow:hidden; border-radius:18px; padding:34px 30px;
-  background:linear-gradient(135deg,#0F766E 0%,#134E4A 48%,#1E1B4B 100%);
+  background:linear-gradient(135deg,#0E6E70 0%,#0A4548 52%,#06282B 100%);
   color:#F0FDFA; text-align:center;
 }
 .cta::before{
   content:""; position:absolute; inset:0; pointer-events:none;
-  background:radial-gradient(closest-side at 78% 12%, rgba(45,212,191,.30), transparent 72%);
+  background:radial-gradient(closest-side at 78% 12%, rgba(79,195,192,.32), transparent 72%);
 }
 .cta > *{position:relative}
-.cta .kicker{font-size:10.5px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:#5EEAD4; margin-bottom:12px}
+.cta .kicker{font-size:10.5px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:#6FD3D0; margin-bottom:12px}
 .cta h2{font-size:clamp(19px,3.4vw,25px); line-height:1.3; max-width:30ch; margin:0 auto 10px}
-.cta p{margin:0 auto 22px; max-width:46ch; font-size:13.5px; color:#A7F3D4; line-height:1.6}
+.cta p{margin:0 auto 22px; max-width:46ch; font-size:13.5px; color:#9FD8D6; line-height:1.6}
 .cta-btns{display:flex; gap:11px; justify-content:center; flex-wrap:wrap}
 .cta-btns a{
   text-decoration:none; border-radius:11px; padding:12px 22px;
   font-size:14px; font-weight:700; display:inline-flex; align-items:center; gap:9px; transition:.13s;
 }
-.cta-a{background:#F0FDFA; color:#0F766E}
+.cta-a{background:#F0FDFA; color:#0E6E70}
 .cta-a:hover{transform:translateY(-1px)}
 .cta-b{background:rgba(240,253,250,.1); color:#F0FDFA; border:1px solid rgba(240,253,250,.3)}
 .cta-b:hover{background:rgba(240,253,250,.18)}
@@ -291,9 +291,11 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
 
 <header class="topbar">
   <div class="brand">
-    <!-- LOGO: para usar el logotipo oficial, reemplaza el archivo assets/melillo-sound.svg
-         conservando ese nombre. No hace falta tocar nada más en este archivo. -->
-    <img class="logo" src="assets/melillo-sound.svg" alt="Melillo Sound">
+    <!-- LOGO: hay dos variantes porque el wordmark es oscuro y no se leería sobre el
+         tema oscuro. Para usar los archivos oficiales reemplaza assets/melillo-sound.svg
+         (interfaz clara) y assets/melillo-sound-dark.svg (interfaz oscura), conservando
+         esos nombres. No hace falta tocar nada más en este archivo. -->
+    <img class="logo" id="logoImg" src="assets/melillo-sound.svg" alt="Melillo Sound">
     <span class="brand-sep" aria-hidden="true"></span>
     <span class="brand-txt">
       <span class="app-name">Entra<b>En</b>Pauta</span>
@@ -913,6 +915,14 @@ function copiar(){
    TEMA
    ===================================================================== */
 
+/* Cuando la app corre embebida (por ejemplo publicada como artifact), el anfitrión
+   estampa data-theme en <html>. Es un atributo distinto del data-tema propio de la
+   app, así que no chocan: si el usuario no ha elegido tema aquí, seguimos al host. */
+function temaDelAnfitrion(){
+  const t = document.documentElement.getAttribute("data-theme");
+  return (t === "dark" || t === "light") ? t : null;
+}
+
 function aplicarTema(){
   const raiz = document.documentElement;
   raiz.setAttribute("data-tema", state.tema);
@@ -920,6 +930,8 @@ function aplicarTema(){
     (state.tema === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
   $("temaIco").textContent = oscuro ? "☀️" : "🌙";
   $("temaTxt").textContent = oscuro ? "Claro" : "Oscuro";
+  /* El wordmark de la marca es oscuro: sobre el tema oscuro hace falta la variante clara. */
+  $("logoImg").src = "assets/melillo-sound" + (oscuro ? "-dark" : "") + ".svg";
 }
 
 /* =====================================================================
@@ -1027,6 +1039,12 @@ function ajustarHueco(){
 }
 if (typeof ResizeObserver === "function") new ResizeObserver(ajustarHueco).observe(dock);
 addEventListener("resize", ajustarHueco);
+
+if (state.tema === "auto" && temaDelAnfitrion()) state.tema = temaDelAnfitrion();
+new MutationObserver(function(){
+  const h = temaDelAnfitrion();
+  if (h && h !== state.tema) { state.tema = h; aplicarTema(); }
+}).observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
 
 aplicarTema();
 marcarChips();

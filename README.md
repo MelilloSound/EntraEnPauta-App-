@@ -9,6 +9,8 @@ y pausas por puntuación calibrado para el **español de Latinoamérica**.
 
 Desarrollada para **Melillo Sound**.
 
+**▶ Probarla en vivo:** https://claude.ai/code/artifact/1789ffbd-a072-4592-9af6-645ecb61ef2d
+
 ---
 
 ## Cómo usarla
@@ -34,10 +36,23 @@ No hay paso de compilación: se publica tal cual.
 
 ## Cómo cambiar el logotipo
 
-Reemplaza **`assets/melillo-sound.svg`** conservando ese nombre. El header lo toma
-automáticamente y no hay que editar `index.html`. Sirve SVG, PNG o WebP (si cambias
-la extensión, ajusta el `src` en el único `<img class="logo">` del archivo).
-El alto se limita por CSS a 34px, así que cualquier proporción razonable funciona.
+Los SVG incluidos son una **reproducción vectorial** del logotipo: el ícono del teclado
+es fiel al original, pero el wordmark está compuesto con una pila de tipografías
+geométricas, no con la tipografía licenciada de la marca. Para usar los archivos
+oficiales, reemplázalos conservando estos nombres:
+
+| Archivo | Se usa en |
+|---|---|
+| `assets/melillo-sound.svg` | interfaz **clara** — wordmark oscuro |
+| `assets/melillo-sound-dark.svg` | interfaz **oscura** — wordmark claro |
+
+Son dos porque el wordmark de la marca es de un verde casi negro y desaparecería sobre
+el tema oscuro. La app intercambia el `src` según el tema efectivo; no hay que editar
+`index.html`. Sirve SVG, PNG o WebP (si cambias la extensión, ajusta la línea
+`$("logoImg").src = ...` dentro de `aplicarTema()`).
+
+El alto se limita por CSS a 34px, así que conviene una **versión horizontal** del
+logotipo: el lockup vertical del manual de marca queda ilegible a esa altura.
 
 ---
 
@@ -132,12 +147,26 @@ para el ingeniero de mezcla con los tiempos de cada sección y el estilo elegido
 ## Pruebas
 
 `tests/verify.mjs` cubre el motor de cálculo, las alertas, los veredictos, el render de
-la barra, el guion final y el diseño responsivo (59 aserciones).
+la barra, el guion final el logotipo por tema y el diseño responsivo (63 aserciones).
 
 ```bash
 npm install -D playwright   # si aún no está disponible
 node tests/verify.mjs       # añade --shots para generar capturas en tests/output/
 ```
+
+---
+
+## Publicar como Artifact
+
+`index.html` es la única fuente de verdad. Para generar la variante que consume el
+anfitrión de Artifacts (que aporta su propio `<!doctype>`, `<head>` y `<body>`):
+
+```bash
+node tools/build-artifact.mjs   # → dist/entraenpauta.html
+```
+
+La app respeta el tema del anfitrión: si el contenedor estampa `data-theme` en `<html>`,
+lo sigue mientras el usuario no elija tema desde el header.
 
 ---
 
