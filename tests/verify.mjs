@@ -6,7 +6,7 @@
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const url  = 'file://' + resolve(raiz, 'index.html');
@@ -114,8 +114,8 @@ await page.waitForTimeout(60);
 
 const tCreativo = await page.textContent('#tCreativo');
 check('el contador del módulo muestra 3.5s', tCreativo === '3.5s', `dio ${tCreativo}`);
-const sCreativo = await page.textContent('#sCreativo');
-check('el contador de sílabas muestra 12', sCreativo === '12', `dio ${sCreativo}`);
+const pCreativo = await page.textContent('#pCreativo');
+check('el contador de pausas muestra 1.5s', pCreativo === '1.5s', `dio ${pCreativo}`);
 
 // AudioLogo por defecto: 3s al final. 3.0 + 3.5 = 6.5s de 30s = 22 % → amarillo
 let diag = await page.getAttribute('#diag', 'class');
@@ -190,14 +190,15 @@ await page.waitForTimeout(120);
 
 const guion = await page.inputValue('#guionTxt');
 check('el modal se abre', await page.evaluate(() => document.getElementById('modal').open));
-check('incluye el separador ---', guion.includes('\n---\n'));
+check('la hoja se renderiza', await page.isVisible('#hoja'));
 check('incluye el RESUMEN TÉCNICO', guion.includes('RESUMEN TÉCNICO'));
-check('incluye el estilo de locución con su SPM', guion.includes('Natural / Conversacional (355 SPM)'));
-check('incluye el ritmo del legal', guion.includes('ritmo Muy Rápido'));
+check('el legal declara lo que pasa en post', guion.includes('Muy Rápido (Muy acelerado en Audio Post)'));
 check('incluye el total', /TOTAL: \d+\.\d+s de 15\.0s/.test(guion));
-check('no arrastra datos de la interfaz', !guion.includes('sílabas\n\n') && !guion.includes('estimados'));
+check('el texto copiado no lleva SPM ni sílabas',
+  !/SPM|sílabas/.test(guion), guion.split('\n').find(l => /SPM|sílabas/.test(l)));
+check('el AudioLogo ya no dice "musicales"', !guion.includes('musicales'));
 
-const cuerpo = guion.split('\n---\n')[0];
+const cuerpo = guion.split('RESUMEN TÉCNICO')[0];
 const iVo = cuerpo.indexOf('Melillo Sound, el sonido');
 const iCr = cuerpo.indexOf('Llegó la temporada');
 const iLg = cuerpo.indexOf('Aplican términos');
@@ -209,7 +210,7 @@ await page.click('#cerrarBtn');
 await page.selectOption('#alPos', 'inicio');
 await page.click('#generarBtn');
 await page.waitForTimeout(120);
-const guion2 = (await page.inputValue('#guionTxt')).split('\n---\n')[0];
+const guion2 = (await page.inputValue('#guionTxt')).split('RESUMEN TÉCNICO')[0];
 check('AudioLogo al principio → su VO va primero',
   guion2.indexOf('Melillo Sound, el sonido') < guion2.indexOf('Llegó la temporada'));
 await page.click('#cerrarBtn');
@@ -286,13 +287,13 @@ check('Creativo y Oferta arrancan heredando el estilo base',
 
 const etiquetaHeredar = await page.$eval('#estiloCreativo option', o => o.textContent);
 check('la opción heredada nombra el estilo base vigente',
-  etiquetaHeredar === 'Igual que el estilo base (Natural / Conversacional — 355 SPM)', etiquetaHeredar);
+  etiquetaHeredar === 'Igual que el estilo base (Natural / Conversacional)', etiquetaHeredar);
 
 await page.selectOption('#estilo', 'trailer');   // 220 SPM
 await page.waitForTimeout(60);
 const etiquetaTrailer = await page.$eval('#estiloCreativo option', o => o.textContent);
 check('la etiqueta heredada se reescribe al cambiar el base',
-  etiquetaTrailer === 'Igual que el estilo base (Tráiler de Película — 220 SPM)', etiquetaTrailer);
+  etiquetaTrailer === 'Igual que el estilo base (Tráiler de Película)', etiquetaTrailer);
 
 // Mismo texto en ambas secciones: heredando, deben medir igual.
 const frase = 'Bienvenido a la nueva era de nuestra marca.';
@@ -302,12 +303,12 @@ await page.fill('#txOferta', frase);
 await page.waitForTimeout(60);
 check('heredando el base, Creativo y Oferta miden igual',
   (await page.textContent('#tCreativo')) === (await page.textContent('#tOferta')));
-check('el pie de Creativo muestra el SPM heredado', (await page.textContent('#spmCreativo')) === '355');
+check('el pie de Creativo no expone el SPM', (await page.$('#spmCreativo')) === null);
 
 // Fijar Oferta en Institucional (310 SPM) la separa del base.
 await page.selectOption('#estiloOferta', 'institucional');
 await page.waitForTimeout(60);
-check('el pie de Oferta muestra su SPM propio', (await page.textContent('#spmOferta')) === '310');
+
 
 const esperado = await page.evaluate(f => EEP.tiempoBloque(f, 310).total, frase);
 check('Oferta se calcula con 310 SPM',
@@ -325,7 +326,7 @@ check('cambiar el base mueve la sección que hereda',
   (await page.textContent('#tCreativo')) !== creativoAntes);
 check('cambiar el base NO mueve la sección fijada a mano',
   (await page.textContent('#tOferta')) === ofertaAntes);
-check('el pie de Creativo sigue al base', (await page.textContent('#spmCreativo')) === '415');
+
 
 // Persistencia y saneamiento de lo guardado.
 await page.reload();
@@ -351,12 +352,12 @@ await page.click('#generarBtn');
 await page.waitForTimeout(120);
 const resumen = await page.inputValue('#guionTxt');
 await page.click('#cerrarBtn');
-check('el resumen nombra el estilo base', /Estilo de locución base: /.test(resumen));
-check('el resumen da el estilo de Copy Creativo',
-  /Copy Creativo:.*\(\d+ SPM\)/.test(resumen), resumen.split('\n').find(l => l.startsWith('Copy Creativo')));
-check('el resumen da el estilo de Copy Oferta / Institucional',
-  /Copy Oferta \/ Institucional:.*Institucional \/ Voz de Marca \(310 SPM\)/.test(resumen),
-  resumen.split('\n').find(l => l.startsWith('Copy Oferta')));
+check('el resumen nombra el estilo de cada sección',
+  /Creativo: .+ · Oferta: Institucional \/ Voz de Marca/.test(resumen),
+  resumen.split('\n').find(l => l.startsWith('Creativo:')));
+check('el resumen lista los tramos con sus segundos',
+  /Copy Creativo — \d+\.\d+s/.test(resumen));
+check('el resumen no lleva SPM ni sílabas', !/SPM|sílabas/.test(resumen));
 
 // ── 10. Textos de la interfaz ──────────────────────────────
 console.log('\n10. Textos de la interfaz');
@@ -420,6 +421,138 @@ for (const [nombre, ancho, apilados] of [['escritorio', 1440, false], ['móvil',
     `${campos.dur.height} vs ${campos.pos.height}`);
 }
 await page.setViewportSize({ width: 1440, height: 900 });
+
+// ── 11. Ficha del proyecto y hoja A4 ──────────────────────
+console.log('\n11. Ficha del proyecto y hoja A4');
+
+await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+await page.reload();
+await page.setViewportSize({ width: 1440, height: 1000 });
+
+// Sin ficha: la hoja cae en el texto de reserva y omite los campos opcionales.
+await page.fill('#txCreativo', 'Llegó la temporada más esperada del año.');
+await page.click('#generarBtn');
+await page.waitForTimeout(150);
+check('sin título, la hoja usa el texto de reserva',
+  (await page.textContent('#hTitulo')) === 'Guion sin título');
+check('Agencia vacía no aparece en la hoja',
+  !(await page.textContent('#hMeta')).includes('Agencia'));
+check('Dirección creativa vacía queda oculta', await page.isHidden('#hDir'));
+check('Marca y Versión aparecen aunque estén vacías',
+  /Marca/.test(await page.textContent('#hMeta')) && /Versión/.test(await page.textContent('#hMeta')));
+await page.click('#cerrarBtn');
+
+// Con ficha completa.
+await page.fill('#fTitulo', 'Día de las Madres 2026');
+await page.fill('#fMarca', 'Toyota');
+await page.fill('#fVersion', 'Comercial TV 20s V1');
+await page.fill('#fAgencia', 'Agencia Ejemplo');
+await page.fill('#fDireccion', 'Tono cálido, cercano. Evitar la sobreactuación.');
+await page.click('#generarBtn');
+await page.waitForTimeout(150);
+
+check('el título encabeza la hoja', (await page.textContent('#hTitulo')) === 'Día de las Madres 2026');
+const meta = await page.textContent('#hMeta');
+check('la hoja lleva marca, versión y agencia',
+  /Toyota/.test(meta) && /Comercial TV 20s V1/.test(meta) && /Agencia Ejemplo/.test(meta), meta);
+check('la dirección creativa aparece cuando hay contenido',
+  await page.isVisible('#hDir') && (await page.textContent('#hDir')).includes('Tono cálido'));
+check('el guion va en párrafos, sin rótulos de sección',
+  (await page.$$('#hGuion p')).length >= 1 &&
+  !(await page.textContent('#hGuion')).includes('Copy Creativo'));
+
+// La ficha persiste.
+await page.click('#cerrarBtn');
+await page.reload();
+await page.waitForTimeout(100);
+check('la ficha sobrevive al recargar', (await page.inputValue('#fMarca')) === 'Toyota');
+
+// ── Línea del tiempo ──────────────────────────────────────
+await page.click('.chip[data-seg="30"]');
+await page.fill('#txCreativo', 'Llegó la temporada más esperada del año, con descuentos.');
+await page.fill('#txOferta', 'Visita tu concesionario.');
+await page.click('#generarBtn');
+await page.waitForTimeout(150);
+
+const lt = await page.evaluate(() => {
+  const celdas = [...document.querySelectorAll('#hLinea .lt-celda')];
+  return celdas.map(c => ({
+    nombre: c.querySelector('.lt-nombre').textContent,
+    seg: c.querySelector('.lt-seg').textContent,
+    grow: parseFloat(c.style.flexGrow),
+  }));
+});
+check('hay un tramo por bloque activo con duración', lt.length === 3, JSON.stringify(lt.map(c => c.nombre)));
+check('el orden cronológico pone el AudioLogo al final',
+  lt[lt.length - 1].nombre === 'AudioLogo', lt.map(c => c.nombre).join(' → '));
+check('cada tramo muestra sus segundos debajo del nombre',
+  lt.every(c => /^\d+\.\d+s$/.test(c.seg)), JSON.stringify(lt.map(c => c.seg)));
+check('el ancho de cada tramo es su duración',
+  lt.every(c => Math.abs(c.grow - parseFloat(c.seg)) < 0.051), JSON.stringify(lt.map(c => [c.grow, c.seg])));
+check('la línea del tiempo no usa color, solo tinta',
+  await page.evaluate(() => [...document.querySelectorAll('#hLinea .lt-tramo')]
+    .every(t => getComputedStyle(t).backgroundColor === 'rgba(0, 0, 0, 0)')));
+check('sin exceso no hay marcador de pauta', (await page.$('#hLinea .lt-marca')) === null);
+
+const total = await page.textContent('#hTotal');
+check('el TOTAL usa el formato pedido', /^TOTAL: \d+\.\d+s de 30\.0s \(\d+\.\d+ %\)$/.test(total), total);
+
+// Con exceso aparece el marcador, y dentro de los límites de la barra.
+await page.click('#cerrarBtn');
+await page.fill('#objSeg', '8');   // el guion ronda los 10s: con 8s de pauta se pasa
+await page.waitForTimeout(60);
+await page.click('#generarBtn');
+await page.waitForTimeout(150);
+const marca = await page.evaluate(() => {
+  const m = document.querySelector('#hLinea .lt-marca');
+  if (!m) return null;
+  const lt = document.getElementById('hLinea');
+  return { left: m.offsetLeft, ancho: lt.offsetWidth, texto: m.textContent.trim() };
+});
+check('al exceder aparece el marcador de pauta', marca !== null);
+check('el marcador cae dentro de la barra',
+  marca && marca.left > 0 && marca.left < marca.ancho, JSON.stringify(marca));
+check('el marcador etiqueta el límite', marca && marca.texto === 'PAUTA 8.0s', marca && marca.texto);
+check('el TOTAL avisa del exceso', /excede por \d+\.\d+s/.test(await page.textContent('#hTotal')));
+
+// ── Impresión real a A4 ───────────────────────────────────
+const pdf = await page.pdf({ format: 'A4', printBackground: true });
+const paginas = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+check('la impresión genera un PDF', pdf.length > 1000, `${pdf.length} bytes`);
+check('el CSS de impresión deja una sola página, no la app entera',
+  paginas === 1, `${paginas} páginas`);
+if (conCapturas) {
+  mkdirSync(resolve(raiz, 'tests/output'), { recursive: true });
+  writeFileSync(resolve(raiz, 'tests/output/guion-final.pdf'), pdf);
+}
+await page.click('#cerrarBtn');
+
+// ── 12. Nada de razonamiento interno a la vista ───────────
+console.log('\n12. Razonamiento interno oculto');
+
+const visible = await page.evaluate(() => document.body.innerText);
+check('la app no muestra "SPM" en ninguna parte', !/SPM/.test(visible),
+  visible.split('\n').find(l => /SPM/.test(l)));
+check('la app no muestra "sílabas / minuto"', !/sílabas\s*\/\s*minuto/.test(visible));
+
+// La única aparición permitida es la alerta de cifras, donde la palabra explica
+// por qué el aviso existe.
+await page.fill('#txOferta', 'Llévate 2 X 1 hoy.');
+await page.waitForTimeout(80);
+const conAlerta = await page.evaluate(() => document.body.innerText);
+const lineasSilabas = conAlerta.split('\n').filter(l => /sílabas/.test(l));
+check('"sílabas" solo aparece en la alerta de cifras',
+  lineasSilabas.length === 1 && lineasSilabas[0].includes('1999'), JSON.stringify(lineasSilabas));
+
+const opciones = await page.$$eval('#estilo option, #estiloCreativo option, #estiloOferta option',
+  os => os.map(o => o.textContent));
+check('ningún selector de estilo nombra el SPM', !opciones.some(o => /SPM/.test(o)),
+  opciones.find(o => /SPM/.test(o)));
+
+const velocidades = await page.$$eval('#legalVel option', os => os.map(o => o.textContent));
+check('el legal declara la aceleración en post',
+  velocidades[1].includes('(Acelerado en Audio Post)') &&
+  velocidades[2].includes('(Muy acelerado en Audio Post)'), JSON.stringify(velocidades));
 
 // ── Capturas opcionales ───────────────────────────────────────────────
 if (conCapturas) {

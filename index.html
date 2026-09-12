@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EntraEnPauta · Melillo Sound</title>
-<meta name="description" content="Predice si tu guion publicitario cabe en la pauta antes de ir al estudio. Modelo de sílabas por minuto calibrado para español de Latinoamérica.">
+<meta name="description" content="Predice si tu guion publicitario cabe en la pauta antes de ir al estudio. Modelo predictivo de duración de locución calibrado para español de Latinoamérica.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎙️</text></svg>">
 <style>
 /* ---------- Tokens: claro por defecto ---------- */
@@ -91,20 +91,14 @@ main{max-width:940px; margin:0 auto; padding-inline:16px; padding-block:22px 8px
 .cfg-grid{display:grid; grid-template-columns:1fr 1fr; gap:22px}
 .campo{display:flex; flex-direction:column; gap:7px}
 .campo > label, .sub-lab{font-size:12px; font-weight:600; color:var(--txt-2)}
-select,input[type="number"],textarea{
+select,input[type="text"],input[type="number"],textarea{
   background:var(--panel-2); border:1px solid var(--linea); color:var(--txt);
   border-radius:10px; padding:10px 12px; width:100%;
 }
 /* Sin esto un <select> queda unos 4px mas bajo que un <input type=number>
    y los controles de una misma fila no cierran a la misma altura. */
-select,input[type="number"]{line-height:1.45; height:45px}
+select,input[type="text"],input[type="number"]{line-height:1.45; height:45px}
 select:focus,input:focus,textarea:focus{border-color:var(--acento); box-shadow:0 0 0 3px var(--anillo); outline:none}
-.spm-badge{
-  display:inline-flex; align-items:baseline; gap:5px; align-self:flex-start;
-  background:color-mix(in srgb, var(--acento) 14%, transparent);
-  color:var(--acento); border-radius:999px; padding:3px 11px;
-  font-size:12px; font-weight:700; letter-spacing:.02em;
-}
 .rapidos{display:flex; gap:8px; flex-wrap:wrap}
 .chip{
   cursor:pointer; background:var(--panel-2); border:1px solid var(--linea);
@@ -230,17 +224,60 @@ textarea.chico{min-height:76px}
 /* ---------- Modal ---------- */
 dialog{
   border:1px solid var(--linea); border-radius:var(--r); background:var(--panel);
-  color:var(--txt); padding:0; width:min(720px,calc(100vw - 32px)); max-height:86vh;
+  color:var(--txt); padding:0; width:min(880px,calc(100vw - 32px)); max-height:90vh;
   box-shadow:0 30px 70px -20px rgba(0,0,0,.55);
 }
 dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
 .dlg-h{display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--linea)}
 .dlg-h h2{flex:1; font-size:15px}
 .dlg-b{padding:18px 20px; overflow:auto; max-height:58vh}
-#guionTxt{
-  width:100%; min-height:330px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  font-size:12.5px; line-height:1.65; white-space:pre-wrap; resize:vertical;
+/* Ya no se muestra: solo existe para el respaldo de copia con execCommand,
+   que necesita un elemento real y seleccionable en el documento. */
+#guionTxt{position:absolute; left:-9999px; width:1px; height:1px; opacity:0}
+
+/* ---------- Hoja A4 del guion final ----------
+   Se pinta siempre con colores de papel en los dos temas: es la vista previa
+   honesta de lo que sale por la impresora. */
+.dlg-b.papel{background:var(--panel-2); padding:22px}
+.hoja{
+  width:210mm; max-width:100%; margin:0 auto;
+  background:#FFFFFF; color:#151A21;
+  padding:15mm 17mm; box-shadow:0 2px 16px rgba(0,0,0,.22);
+  font-size:15px; line-height:1.55;
 }
+.hoja h1{font-size:22px; font-weight:700; letter-spacing:-.02em; margin:0 0 11px; text-wrap:balance}
+.hoja-meta{display:flex; flex-wrap:wrap; gap:3px 26px; font-size:12.5px; color:#4C5868; margin:0}
+.hoja-meta b{color:#151A21; font-weight:650}
+.hoja-dir{font-size:12.5px; color:#4C5868; margin:9px 0 0; white-space:pre-wrap}
+.hoja-dir b{color:#151A21; font-weight:650}
+.hoja-regla{border:0; border-top:1px solid #C9D1DB; margin:17px 0}
+.hoja h2{
+  font-size:10.5px; font-weight:800; letter-spacing:.17em; text-transform:uppercase;
+  color:#6B7789; margin:0 0 13px;
+}
+.hoja-guion{margin-bottom:26px}
+.hoja-guion p{margin:0 0 14px; font-size:15.5px; line-height:1.75; white-space:pre-wrap}
+.hoja-guion p:last-child{margin-bottom:0}
+
+/* Línea del tiempo: solo tinta, sin color. Cada celda lleva su tramo y su
+   etiqueta, así barra y textos comparten geometría y no pueden desalinearse. */
+.lt{display:flex; position:relative; padding-top:18px}
+.lt-celda{flex-basis:0; min-width:62px; text-align:center}
+.lt-tramo{height:30px; border:1px solid #151A21; border-right:0}
+.lt-celda:last-child .lt-tramo{border-right:1px solid #151A21}
+.lt-nombre{font-size:10.5px; color:#4C5868; margin-top:8px; line-height:1.3; padding:0 3px}
+.lt-seg{font-size:13.5px; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums}
+.lt-marca{position:absolute; top:18px; height:30px; border-left:2px dashed #151A21}
+.lt-marca span{
+  position:absolute; bottom:100%; left:50%; transform:translateX(-50%); margin-bottom:4px;
+  font-size:9px; font-weight:800; letter-spacing:.09em; white-space:nowrap; color:#151A21;
+}
+.hoja-estilos{font-size:11.5px; color:#4C5868; margin:20px 0 0}
+.hoja-total{
+  font-size:15px; font-weight:700; margin:15px 0 0; padding-top:13px;
+  border-top:1px solid #C9D1DB; font-variant-numeric:tabular-nums;
+}
+.hoja-total em{font-style:normal; color:#B42318}
 .dlg-f{display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:14px 20px; border-top:1px solid var(--linea)}
 .dlg-f .ok{margin-right:auto; font-size:12.5px; color:var(--verde-d); font-weight:650; opacity:0; transition:.2s}
 .dlg-f .ok.on{opacity:1}
@@ -289,7 +326,30 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
   .cta-btns a{width:100%; justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important}}
-@media print{.topbar,.dock,.cta-wrap,.acciones{display:none}}
+/* Impresión: sale la hoja y nada más. El <dialog> vive en la capa superior,
+   así que hay que desmontarle el cromado para que no imprima su marco. */
+@page{ size:A4; margin:15mm }
+@media print{
+  html,body{background:#fff !important}
+  body{padding:0 !important}
+  body > *{display:none !important}
+  dialog[open]{
+    display:block !important; position:static !important; margin:0 !important;
+    width:auto !important; max-width:none !important; max-height:none !important;
+    border:0 !important; border-radius:0 !important; box-shadow:none !important;
+    background:#fff !important; color:#151A21 !important;
+  }
+  dialog::backdrop{display:none !important}
+  .dlg-h,.dlg-f{display:none !important}
+  .dlg-b.papel{padding:0 !important; overflow:visible !important; max-height:none !important; background:#fff !important}
+  .hoja{
+    width:auto !important; max-width:none !important; padding:0 !important;
+    box-shadow:none !important; font-size:11.5pt;
+  }
+  .hoja-guion p{font-size:12pt}
+  .hoja h2,.hoja-total{break-after:avoid}
+  .lt{break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -324,7 +384,6 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
         <div class="campo">
           <label for="estilo">Estilo de locución base</label>
           <select id="estilo"></select>
-          <span class="spm-badge"><b class="num" id="spmVal">355</b> sílabas / minuto</span>
         </div>
 
         <div class="campo">
@@ -348,6 +407,37 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
           </div>
         </div>
 
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. FICHA DEL PROYECTO ============ -->
+  <section class="card">
+    <div class="card-h"><h2>Ficha del proyecto</h2></div>
+    <div class="card-b">
+      <div class="fila">
+        <div class="campo">
+          <label for="fTitulo">Título</label>
+          <input type="text" id="fTitulo" placeholder="Escribe el nombre de tu pauta. (Ej: Día de las Madres 2026)">
+        </div>
+        <div class="campo">
+          <label for="fMarca">Marca</label>
+          <input type="text" id="fMarca" placeholder="Ej: Toyota">
+        </div>
+      </div>
+      <div class="fila">
+        <div class="campo">
+          <label for="fVersion">Versión</label>
+          <input type="text" id="fVersion" placeholder="Ej: Comercial TV 20s V1">
+        </div>
+        <div class="campo">
+          <label for="fAgencia">Agencia (opcional)</label>
+          <input type="text" id="fAgencia" placeholder="Escribe el nombre de la agencia o creativo responsable">
+        </div>
+      </div>
+      <div class="campo">
+        <label for="fDireccion">Dirección creativa (opcional)</label>
+        <textarea id="fDireccion" class="chico" placeholder="Escribe indicaciones más específicas."></textarea>
       </div>
     </div>
   </section>
@@ -382,7 +472,6 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
       </div>
       <div class="mod-foot">
         <span class="metrica"><b class="num" id="alVoTiempo">0.0s</b> de VO</span>
-        <span class="metrica"><b class="num" id="alVoSil">0</b> sílabas</span>
         <span class="metrica">ocupa <b class="num" id="alTotal">3.0s</b> de la pauta</span>
       </div>
       <div class="alertas" id="alertas-audiologo"></div>
@@ -408,9 +497,7 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
       </div>
       <div class="mod-foot">
         <span class="metrica" id="met-creativo"><b class="num" id="tCreativo">0.0s</b> estimados</span>
-        <span class="metrica"><b class="num" id="sCreativo">0</b> sílabas</span>
         <span class="metrica"><b class="num" id="pCreativo">0.0s</b> en pausas</span>
-        <span class="metrica">a <b class="num" id="spmCreativo">355</b> SPM</span>
       </div>
       <div class="alertas" id="alertas-creativo"></div>
     </div>
@@ -435,9 +522,7 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
       </div>
       <div class="mod-foot">
         <span class="metrica" id="met-oferta"><b class="num" id="tOferta">0.0s</b> estimados</span>
-        <span class="metrica"><b class="num" id="sOferta">0</b> sílabas</span>
         <span class="metrica"><b class="num" id="pOferta">0.0s</b> en pausas</span>
-        <span class="metrica">a <b class="num" id="spmOferta">355</b> SPM</span>
       </div>
       <div class="alertas" id="alertas-oferta"></div>
     </div>
@@ -456,8 +541,8 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
         <label for="legalVel">Velocidad de lectura del legal</label>
         <select id="legalVel">
           <option value="normal" selected>Normal — mismo ritmo que el guion</option>
-          <option value="rapido">Rápido — 1.25× más veloz</option>
-          <option value="muyrapido">Muy Rápido — 1.5× más veloz</option>
+          <option value="rapido">Rápido — 1.25× más veloz (Acelerado en Audio Post)</option>
+          <option value="muyrapido">Muy Rápido — 1.5× más veloz (Muy acelerado en Audio Post)</option>
         </select>
       </div>
       <div class="campo">
@@ -466,7 +551,6 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
       </div>
       <div class="mod-foot">
         <span class="metrica" id="met-legal"><b class="num" id="tLegal">0.0s</b> estimados</span>
-        <span class="metrica"><b class="num" id="sLegal">0</b> sílabas</span>
         <span class="metrica">a ritmo <b id="vLegal">normal</b></span>
       </div>
       <div class="alertas" id="alertas-legal"></div>
@@ -492,7 +576,7 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
   </section>
 </div>
 <p class="creditos">
-  EntraEnPauta · Modelo predictivo de sílabas por minuto calibrado para español de Latinoamérica.<br>
+  EntraEnPauta · Modelo predictivo de duración de locución calibrado para español de Latinoamérica.<br>
   Las duraciones son una estimación: la interpretación final del locutor puede variar.
 </p>
 
@@ -522,13 +606,28 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
     <h2>Guion final para locución</h2>
     <button type="button" class="icon-btn" id="cerrarX" aria-label="Cerrar">✕</button>
   </div>
-  <div class="dlg-b">
-    <textarea id="guionTxt" spellcheck="false" aria-label="Guion final generado"></textarea>
+  <div class="dlg-b papel">
+    <article class="hoja" id="hoja">
+      <h1 id="hTitulo">Guion sin título</h1>
+      <div class="hoja-meta" id="hMeta"></div>
+      <p class="hoja-dir" id="hDir" hidden></p>
+      <hr class="hoja-regla">
+
+      <h2>Guion final</h2>
+      <div class="hoja-guion" id="hGuion"></div>
+
+      <h2>Resumen técnico</h2>
+      <div class="lt" id="hLinea"></div>
+      <p class="hoja-estilos" id="hEstilos" hidden></p>
+      <p class="hoja-total" id="hTotal"></p>
+    </article>
+    <textarea id="guionTxt" spellcheck="false" aria-hidden="true" tabindex="-1"></textarea>
   </div>
   <div class="dlg-f">
     <span class="ok" id="copiado">✓ Copiado al portapapeles</span>
     <button type="button" class="btn btn-sec" id="cerrarBtn">Cerrar</button>
-    <button type="button" class="btn btn-pri" id="copiarBtn">📋 Copiar al portapapeles</button>
+    <button type="button" class="btn btn-sec" id="imprimirBtn">🖨 Imprimir / Guardar PDF</button>
+    <button type="button" class="btn btn-pri" id="copiarBtn">📋 Copiar texto</button>
   </div>
 </dialog>
 
@@ -571,6 +670,9 @@ const PAUSAS = {
 /* Multiplicador de velocidad del Copy Legal: acelera sílabas Y pausas. */
 const VELOCIDAD_LEGAL = { normal:1, rapido:1.25, muyrapido:1.5 };
 const NOMBRE_VELOCIDAD = { normal:"Normal", rapido:"Rápido", muyrapido:"Muy Rápido" };
+/* Lo que el estudio tiene que hacer en post con cada velocidad. */
+const NOTA_VELOCIDAD = { normal:"", rapido:" (Acelerado en Audio Post)",
+                         muyrapido:" (Muy acelerado en Audio Post)" };
 
 /* Límites de densidad recomendados por bloque (segundos). */
 const LIMITES = { creativo:20, oferta:8, legal:6 };
@@ -583,16 +685,27 @@ const NOMBRES = {
   audiologo:"AudioLogo", creativo:"Copy Creativo",
   oferta:"Copy Oferta / Institucional", legal:"Copy Legal"
 };
-/* La leyenda del dock lleva cinco entradas en una franja estrecha: ahí van cortos. */
+/* Nombres breves para la leyenda del dock, que lleva cinco entradas en una
+   franja estrecha, y para la línea de estilos de la hoja impresa. */
 const NOMBRES_CORTOS = {
   audiologo:"AudioLogo", creativo:"Creativo",
-  oferta:"Oferta / Inst.", legal:"Legal"
+  oferta:"Oferta", legal:"Legal"
 };
 
 const AVISO_CIFRAS = "Los números tardan más en leerse de lo que la fórmula sugiere " +
   "(ej: «1999» es 1 palabra pero 8 sílabas). Escríbelos en letras para medirlos con precisión.";
 
 const CLAVE_GUARDADO = "entraenpauta.v1";
+
+/* Campos de la ficha, en el orden en que encabezan la hoja impresa.
+   `opcional` decide si la línea se omite cuando el campo viene vacío. */
+const FICHA_CAMPOS = [
+  { id:"titulo",    input:"fTitulo",    etiqueta:"Título",              opcional:false },
+  { id:"marca",     input:"fMarca",     etiqueta:"Marca",               opcional:false },
+  { id:"version",   input:"fVersion",   etiqueta:"Versión",             opcional:false },
+  { id:"agencia",   input:"fAgencia",   etiqueta:"Agencia",             opcional:true  },
+  { id:"direccion", input:"fDireccion", etiqueta:"Dirección creativa", opcional:true  }
+];
 
 /* =====================================================================
    MOTOR DE CÁLCULO  (funciones puras)
@@ -662,6 +775,7 @@ window.EEP = { contarSilabas, tiempoPuntuacion, tiempoBloque, tieneCifras,
 
 const state = {
   estilo: "natural",
+  ficha: { titulo:"", marca:"", version:"", agencia:"", direccion:"" },
   objetivo: { min:0, seg:30 },
   audiologo: { on:true,  duracion:3, posicion:"final", vo:"" },
   creativo:  { on:true,  texto:"", estilo:"base" },
@@ -695,6 +809,9 @@ function restaurar(){
     });
     if (state.audiologo.posicion !== "inicio") state.audiologo.posicion = "final";
     state.audiologo.duracion = clamp(state.audiologo.duracion, 0, 60);
+    if (g.ficha) FICHA_CAMPOS.forEach(function(c){
+      if (typeof g.ficha[c.id] === "string") state.ficha[c.id] = g.ficha[c.id].slice(0, 400);
+    });
     if (g.tema === "dark" || g.tema === "light" || g.tema === "auto") state.tema = g.tema;
   } catch(e){ /* guardado corrupto: se ignora */ }
 }
@@ -788,14 +905,12 @@ function render(){
   const r = calcular();
   const b = r.bloques;
 
-  $("spmVal").textContent = r.spm;
   $("lim-audiologo").textContent = state.audiologo.on
     ? "Mi pauta tiene un audiologo" : "Mi pauta no tiene audiologo";
   refrescarEstilos();
 
   /* --- AudioLogo --- */
   $("alVoTiempo").textContent = seg(b.audiologo.vo.total);
-  $("alVoSil").textContent    = b.audiologo.vo.silabas;
   $("alTotal").textContent    = seg(b.audiologo.total);
   const voNoCabe = state.audiologo.on && b.audiologo.vo.total > state.audiologo.duracion;
   pintarAlertas("audiologo", b.audiologo, voNoCabe,
@@ -803,13 +918,11 @@ function render(){
     seg(state.audiologo.duracion) + ". No cabe encima: acorta el texto o alarga la música.");
 
   /* --- Bloques de texto --- */
-  [["creativo","tCreativo","sCreativo","pCreativo","spmCreativo"],
-   ["oferta",  "tOferta",  "sOferta",  "pOferta","spmOferta"]].forEach(function(f){
+  [["creativo","tCreativo","pCreativo"],
+   ["oferta",  "tOferta",  "pOferta"]].forEach(function(f){
     const k = f[0], bl = b[k];
     $(f[1]).textContent = seg(bl.total);
-    $(f[2]).textContent = bl.silabas;
-    $(f[3]).textContent = seg(bl.pausas);
-    $(f[4]).textContent = bl.estilo.spm;
+    $(f[2]).textContent = seg(bl.pausas);
     const excede = bl.on && bl.total > LIMITES[k];
     $("met-" + k).classList.toggle("alerta", !!excede);
     pintarAlertas(k, bl, excede,
@@ -819,7 +932,6 @@ function render(){
 
   /* --- Legal --- */
   $("tLegal").textContent = seg(b.legal.total);
-  $("sLegal").textContent = b.legal.silabas;
   $("vLegal").textContent = NOMBRE_VELOCIDAD[state.legal.velocidad].toLowerCase();
   const legalExcede = b.legal.on && b.legal.total > LIMITES.legal;
   $("met-legal").classList.toggle("alerta", !!legalExcede);
@@ -896,51 +1008,155 @@ function segmento(pct, color, titulo){
    GUION FINAL
    ===================================================================== */
 
-function generarGuion(){
+/* Reúne todo lo que necesita la hoja: textos a locutar, tramos de la línea del
+   tiempo y estilos por sección, ya en orden cronológico. */
+function datosGuion(){
   const r = calcular(), b = r.bloques;
-  const partes = [], resumen = [];
-
-  orden().forEach(function(k){
-    if (k === "audiologo"){
-      if (b.audiologo.on && state.audiologo.vo.trim()) partes.push(state.audiologo.vo.trim());
-    } else if (b[k].on && b[k].texto.trim()){
-      partes.push(b[k].texto.trim());
-    }
-  });
-
-  const base = estiloBase();
-  resumen.push("Estilo de locución base: " + base.label + " (" + base.spm + " SPM)");
-  resumen.push("Pauta objetivo: " + seg(r.objetivo));
+  const partes = [], tramos = [], estilos = [];
 
   orden().forEach(function(k){
     if (k === "audiologo"){
       if (!b.audiologo.on) return;
-      const donde = state.audiologo.posicion === "inicio" ? "principio" : "final";
-      resumen.push("AudioLogo (al " + donde + "): " + seg(b.audiologo.total) + " musicales" +
-        (state.audiologo.vo.trim() ? " · VO superpuesto " + seg(b.audiologo.vo.total) : " · sin VO"));
-    } else if (b[k].on && b[k].texto.trim()){
-      /* El ingeniero necesita saber a qué ritmo se midió cada sección, no solo el total. */
-      const extra = k === "legal"
-        ? " · ritmo " + NOMBRE_VELOCIDAD[state.legal.velocidad]
-        : " · " + b[k].estilo.label + " (" + b[k].estilo.spm + " SPM)";
-      resumen.push(NOMBRES[k] + ": " + seg(b[k].total) + " · " + b[k].silabas + " sílabas" + extra);
+      if (state.audiologo.vo.trim()) partes.push(state.audiologo.vo.trim());
+      if (b.audiologo.total > 0) tramos.push({ nombre:NOMBRES.audiologo, seg:b.audiologo.total });
+      return;
     }
+    if (!b[k].on || !b[k].texto.trim()) return;
+    partes.push(b[k].texto.trim());
+    if (b[k].total > 0) tramos.push({ nombre:NOMBRES[k], seg:b[k].total });
+    estilos.push(NOMBRES_CORTOS[k] + ": " + (k === "legal"
+      ? NOMBRE_VELOCIDAD[state.legal.velocidad] + NOTA_VELOCIDAD[state.legal.velocidad]
+      : b[k].estilo.label));
   });
 
   const pct = r.objetivo > 0 ? " (" + s1(r.pct) + " %)" : "";
-  resumen.push("TOTAL: " + seg(r.consumido) + " de " + seg(r.objetivo) + pct);
-  if (r.consumido > r.objetivo && r.objetivo > 0)
-    resumen.push("ATENCIÓN: excede la pauta por " + seg(r.consumido - r.objetivo) + ".");
-
-  const cuerpo = partes.length ? partes.join("\n\n") : "(Sin texto para locutar.)";
-  return "GUION FINAL\n\n" + cuerpo + "\n\n---\nRESUMEN TÉCNICO\n" + resumen.join("\n") + "\n";
+  const excede = r.objetivo > 0 && r.consumido > r.objetivo;
+  return {
+    partes:partes, tramos:tramos, estilos:estilos,
+    objetivo:r.objetivo, consumido:r.consumido, excede:excede,
+    total: "TOTAL: " + seg(r.consumido) + " de " + seg(r.objetivo) + pct,
+    exceso: excede ? "excede por " + seg(r.consumido - r.objetivo) : ""
+  };
 }
 
+/* Pinta la hoja A4. Se llama con el modal ya abierto porque el marcador de la
+   pauta se posiciona midiendo el DOM maquetado. */
+function pintarHoja(){
+  const d = datosGuion();
+  hojaActual = d;
+
+  $("hTitulo").textContent = state.ficha.titulo.trim() || "Guion sin título";
+
+  const meta = $("hMeta");
+  meta.innerHTML = "";
+  FICHA_CAMPOS.forEach(function(c){
+    if (c.id === "titulo" || c.id === "direccion") return;
+    const valor = state.ficha[c.id].trim();
+    if (!valor && c.opcional) return;          /* Agencia vacía no ensucia la hoja */
+    const fila = document.createElement("div");
+    fila.innerHTML = "<span></span> <b></b>";
+    fila.firstChild.textContent = c.etiqueta + ":";
+    fila.lastChild.textContent = valor || "\u2014";
+    meta.appendChild(fila);
+  });
+
+  const dir = state.ficha.direccion.trim();
+  $("hDir").hidden = !dir;
+  if (dir){
+    $("hDir").innerHTML = "<b></b> <span></span>";
+    $("hDir").firstChild.textContent = "Dirección creativa:";
+    $("hDir").lastChild.textContent = dir;
+  }
+
+  const guion = $("hGuion");
+  guion.innerHTML = "";
+  if (!d.partes.length){
+    const p0 = document.createElement("p");
+    p0.textContent = "(Sin texto para locutar.)";
+    guion.appendChild(p0);
+  } else d.partes.forEach(function(t){
+    const p1 = document.createElement("p");
+    p1.textContent = t;                        /* pre-wrap conserva los saltos tal cual */
+    guion.appendChild(p1);
+  });
+
+  const lt = $("hLinea");
+  lt.innerHTML = "";
+  d.tramos.forEach(function(t){
+    const celda = document.createElement("div");
+    celda.className = "lt-celda";
+    celda.style.flexGrow = String(t.seg);      /* el ancho ES la duración */
+    celda.innerHTML = '<div class="lt-tramo"></div><div class="lt-nombre"></div><div class="lt-seg"></div>';
+    celda.children[1].textContent = t.nombre;
+    celda.children[2].textContent = seg(t.seg);
+    lt.appendChild(celda);
+  });
+  if (d.excede) marcarPauta(lt, d);
+
+  $("hEstilos").hidden = !d.estilos.length;
+  $("hEstilos").textContent = d.estilos.join(" · ");
+
+  $("hTotal").innerHTML = "<span></span>";
+  $("hTotal").firstChild.textContent = d.total;
+  if (d.excede){
+    const av = document.createElement("em");
+    av.textContent = " \u2014 " + d.exceso;
+    $("hTotal").appendChild(av);
+  }
+
+  $("guionTxt").value = guionTextoPlano(d);
+}
+
+/* Marca dónde termina la pauta cuando el guion se pasa. La posición se mide del
+   DOM ya maquetado: el min-width de las celdas rompe la correspondencia lineal
+   entre segundos y píxeles, así que calcularla con pura regla de tres fallaría. */
+function marcarPauta(lt, d){
+  const marca = document.createElement("span");
+  marca.className = "lt-marca";
+  marca.innerHTML = "<span></span>";
+  marca.firstChild.textContent = "PAUTA " + seg(d.objetivo);
+  lt.appendChild(marca);
+
+  const celdas = lt.querySelectorAll(".lt-celda");
+  let acumulado = 0, x = null;
+  for (let i = 0; i < celdas.length; i++){
+    const t = d.tramos[i];
+    if (acumulado + t.seg >= d.objetivo){
+      x = celdas[i].offsetLeft + celdas[i].offsetWidth * ((d.objetivo - acumulado) / t.seg);
+      break;
+    }
+    acumulado += t.seg;
+  }
+  marca.style.left = (x === null ? lt.offsetWidth : x) + "px";
+}
+
+/* Equivalente en texto de la hoja, para el portapapeles. */
+function guionTextoPlano(d){
+  const L = [state.ficha.titulo.trim() || "Guion sin título"];
+  FICHA_CAMPOS.forEach(function(c){
+    if (c.id === "titulo") return;
+    const valor = state.ficha[c.id].trim();
+    if (!valor && c.opcional) return;
+    L.push(c.etiqueta + ": " + (valor || "\u2014"));
+  });
+
+  L.push("", "GUION FINAL", "");
+  L.push(d.partes.length ? d.partes.join("\n\n") : "(Sin texto para locutar.)");
+
+  L.push("", "RESUMEN TÉCNICO", "");
+  d.tramos.forEach(function(t){ L.push(t.nombre + " \u2014 " + seg(t.seg)); });
+  if (d.estilos.length) L.push("", d.estilos.join(" · "));
+  L.push("", d.total + (d.excede ? " \u2014 " + d.exceso : ""));
+  return L.join("\n") + "\n";
+}
+
+let hojaActual = null;
+
 function abrirModal(){
-  $("guionTxt").value = generarGuion();
   $("copiado").classList.remove("on");
   const m = $("modal");
   if (typeof m.showModal === "function") m.showModal(); else m.setAttribute("open","");
+  pintarHoja();                                /* con el modal ya visible: hay que medir */
 }
 
 function copiar(){
@@ -950,8 +1166,10 @@ function copiar(){
     navigator.clipboard.writeText(ta.value).then(exito, copiaManual);
   } else copiaManual();
   function copiaManual(){
+    ta.removeAttribute("aria-hidden");
     ta.focus(); ta.select();
     try { if (document.execCommand("copy")) exito(); } catch(e){ /* sin permiso */ }
+    ta.setAttribute("aria-hidden","true");
   }
 }
 
@@ -985,7 +1203,9 @@ function aplicarTema(){
 restaurar();
 
 /* Select de estilos */
-function etiquetaEstilo(e){ return e.label + " — " + e.spm + " SPM"; }
+/* El SPM es el razonamiento del modelo, no algo que el usuario necesite ver:
+   los selectores muestran solo el nombre del estilo. */
+function etiquetaEstilo(e){ return e.label; }
 
 const sel = $("estilo");
 ESTILOS.forEach(function(e){
@@ -1022,6 +1242,7 @@ function refrescarEstilos(){
 
 /* Volcar el estado en los controles */
 sel.value = state.estilo;
+FICHA_CAMPOS.forEach(function(c){ $(c.input).value = state.ficha[c.id]; });
 $("objMin").value  = state.objetivo.min;
 $("objSeg").value  = state.objetivo.seg;
 $("alDur").value   = state.audiologo.duracion;
@@ -1056,6 +1277,10 @@ Array.prototype.slice.call(document.querySelectorAll(".chip")).forEach(function(
 
 /* Enlaces de estado ↔ controles */
 function on(id, evento, fn){ $(id).addEventListener(evento, function(){ fn(); render(); }); }
+
+FICHA_CAMPOS.forEach(function(c){
+  on(c.input, "input", function(){ state.ficha[c.id] = $(c.input).value; });
+});
 
 on("estilo","change", function(){ state.estilo = sel.value; });
 on("estiloCreativo","change", function(){ state.creativo.estilo = $("estiloCreativo").value; });
@@ -1092,6 +1317,10 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function()
 $("generarBtn").addEventListener("click", abrirModal);
 $("generarBtn2").addEventListener("click", abrirModal);
 $("copiarBtn").addEventListener("click", copiar);
+$("imprimirBtn").addEventListener("click", function(){ window.print(); });
+/* El marcador de la pauta está posicionado en píxeles: al cambiar el ancho
+   hay que volver a medir o queda señalando el punto equivocado. */
+addEventListener("resize", function(){ if ($("modal").open) pintarHoja(); });
 $("cerrarBtn").addEventListener("click", function(){ $("modal").close(); });
 $("cerrarX").addEventListener("click",   function(){ $("modal").close(); });
 

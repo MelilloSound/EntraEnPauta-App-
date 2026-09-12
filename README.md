@@ -72,6 +72,10 @@ Cada grupo de vocales equivale a una sílaba en español, con ~95 % de precisió
 Tiempo base (s) = (sílabas / SPM del estilo) × 60
 ```
 
+> Los SPM son el razonamiento interno del modelo y **no se muestran en la aplicación**:
+> el usuario elige un estilo por su nombre, no por su cifra. La tabla está aquí para quien
+> mantenga el código o quiera recalibrar.
+
 | Estilo de locución | SPM |
 |---|---:|
 | Promocional / Alta Energía | 415 |
@@ -149,19 +153,39 @@ fórmula sin `?` ni `!`, pon `PAUSAS.cierre` en `0`.
 
 ---
 
-## Guion final
+## Ficha del proyecto
 
-El botón **Generar Guion Final** arma un documento limpio con solo los textos a locutar,
-en orden cronológico real (el AudioLogo al principio o al final, según se configure),
-sin contadores ni datos de la interfaz. Bajo una línea `---` añade un **Resumen Técnico**
-para el ingeniero de mezcla con los tiempos de cada sección y el estilo elegido.
+Sobre la estructura del comercial se rellenan **Título**, **Marca** y **Versión**, más
+**Agencia** y **Dirección creativa**, opcionales. Encabezan la hoja del guion final; las dos
+opcionales simplemente no aparecen si se dejan vacías. Todo se autoguarda con el resto del trabajo.
+
+## Guion final: una hoja A4
+
+El botón **Generar Guion Final** arma una hoja lista para imprimir o copiar:
+
+1. **Cabecera** con la ficha del proyecto.
+2. **GUION FINAL** — solo los textos a locutar, en orden cronológico real (el AudioLogo al
+   principio o al final, según se configure), sin rótulos ni indicaciones. Los saltos de línea
+   se conservan tal como se escribieron.
+3. **RESUMEN TÉCNICO** — una línea del tiempo donde el ancho de cada tramo **es** su duración,
+   dibujada solo con tinta, con el nombre de cada estructura y sus segundos debajo. Si el guion
+   excede la pauta, una línea punteada marca el límite. Debajo, el estilo de cada sección y el
+   total.
+
+**Imprimir / Guardar PDF** saca la hoja sola en A4, sin la interfaz detrás. **Copiar texto** pone
+en el portapapeles el equivalente en texto plano — misma cabecera, guion corrido y los tramos como
+lista — que es lo que pega limpio en WhatsApp, correo o un prompter.
+
+La hoja se pinta siempre con colores de papel en los dos temas: es la vista previa honesta de lo
+que sale por la impresora.
 
 ---
 
 ## Pruebas
 
 `tests/verify.mjs` cubre el motor de cálculo, las alertas, los veredictos, el render de
-la barra, el guion final los estilos por sección, el logotipo por tema y el diseño responsivo (95 aserciones).
+la barra, el guion final los estilos por sección, la hoja A4 del guion final —incluida una impresión real a PDF—
+y el diseño responsivo (120 aserciones).
 
 ```bash
 npm install -D playwright   # si aún no está disponible
