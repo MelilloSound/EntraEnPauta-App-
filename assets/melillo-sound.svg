@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 48" width="260" height="48" role="img" aria-label="Melillo Sound">
+  <title>Melillo Sound</title>
+  <!-- PLACEHOLDER: reemplaza este archivo por el logotipo oficial de Melillo Sound.
+       Mantén el nombre assets/melillo-sound.svg y la app lo tomará automáticamente. -->
+  <g fill="none" stroke="#14B8A6" stroke-width="3" stroke-linecap="round">
+    <path d="M4 24v0"/><path d="M11 17v14"/><path d="M18 10v28"/><path d="M25 20v8"/>
+    <path d="M32 6v36"/><path d="M39 15v18"/><path d="M46 21v6"/>
+  </g>
+  <text x="60" y="22" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="2.4" fill="#8A94A6">MELILLO</text>
+  <text x="60" y="39" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" font-weight="300" letter-spacing="6.2" fill="#14B8A6">SOUND</text>
+</svg>
