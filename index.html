@@ -95,6 +95,9 @@ select,input[type="number"],textarea{
   background:var(--panel-2); border:1px solid var(--linea); color:var(--txt);
   border-radius:10px; padding:10px 12px; width:100%;
 }
+/* Sin esto un <select> queda unos 4px mas bajo que un <input type=number>
+   y los controles de una misma fila no cierran a la misma altura. */
+select,input[type="number"]{line-height:1.45; height:45px}
 select:focus,input:focus,textarea:focus{border-color:var(--acento); box-shadow:0 0 0 3px var(--anillo); outline:none}
 .spm-badge{
   display:inline-flex; align-items:baseline; gap:5px; align-self:flex-start;
@@ -158,8 +161,10 @@ textarea.chico{min-height:76px}
 .alerta.roja{border-color:var(--rojo); color:var(--rojo-d); background:color-mix(in srgb,var(--rojo) 9%,var(--panel))}
 .alerta.ambar{border-color:var(--ambar); color:var(--naranja-d); background:color-mix(in srgb,var(--ambar) 10%,var(--panel))}
 .alerta i{font-style:normal; flex:none}
-.fila{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px}
-.fila .campo{flex:1 1 150px}
+/* align-items:flex-end alinea los inputs aunque una etiqueta ocupe dos lineas;
+   la base de 200px hace que los campos se apilen en telefonos en vez de estrujarse. */
+.fila{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; align-items:flex-end}
+.fila .campo{flex:1 1 200px}
 
 /* ---------- Dock inferior ---------- */
 .dock{
@@ -317,7 +322,7 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
       <div class="cfg-grid">
 
         <div class="campo">
-          <label for="estilo">Estilo de locución</label>
+          <label for="estilo">Estilo de locución base</label>
           <select id="estilo"></select>
           <span class="spm-badge"><b class="num" id="spmVal">355</b> sílabas / minuto</span>
         </div>
@@ -354,13 +359,13 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
     <div class="card-h">
       <span class="mod-punto" style="background:var(--rosa)"></span>
       <h2>AudioLogo</h2>
-      <span class="mod-lim">El VO debe caber en la música</span>
+      <span class="mod-lim" id="lim-audiologo">Mi pauta tiene un audiologo</span>
       <label class="sw"><input type="checkbox" id="tgl-audiologo" checked aria-label="Activar AudioLogo"><span></span></label>
     </div>
     <div class="card-b">
       <div class="fila">
         <div class="campo">
-          <label for="alDur">Duración musical (segundos)</label>
+          <label for="alDur">Duración del AudioLogo (segundos)</label>
           <input type="number" id="alDur" min="0" max="60" step="0.5" value="3" inputmode="decimal">
         </div>
         <div class="campo">
@@ -373,7 +378,7 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
       </div>
       <div class="campo">
         <label for="alVo">VoiceOver sobre el AudioLogo (opcional)</label>
-        <textarea id="alVo" class="chico" placeholder="Ej: Melillo Sound. El sonido que conecta."></textarea>
+        <textarea id="alVo" class="chico" placeholder="Ej: Toyota. Vayamos juntos"></textarea>
       </div>
       <div class="mod-foot">
         <span class="metrica"><b class="num" id="alVoTiempo">0.0s</b> de VO</span>
@@ -393,14 +398,19 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
       <label class="sw"><input type="checkbox" id="tgl-creativo" checked aria-label="Activar Copy Creativo"><span></span></label>
     </div>
     <div class="card-b">
+      <div class="campo" style="margin-bottom:14px">
+        <label for="estiloCreativo">Estilo de locución de esta sección</label>
+        <select id="estiloCreativo"></select>
+      </div>
       <div class="campo">
         <label for="txCreativo">Texto principal del comercial</label>
-        <textarea id="txCreativo" placeholder="Escribe aquí el cuerpo creativo del guion…"></textarea>
+        <textarea id="txCreativo" placeholder="Pega aquí únicamente los diálogos, la narrativa o el desarrollo creativo. Para mayor precisión en el tiempo, separa el cierre de marca y los legales en las casillas inferiores."></textarea>
       </div>
       <div class="mod-foot">
         <span class="metrica" id="met-creativo"><b class="num" id="tCreativo">0.0s</b> estimados</span>
         <span class="metrica"><b class="num" id="sCreativo">0</b> sílabas</span>
         <span class="metrica"><b class="num" id="pCreativo">0.0s</b> en pausas</span>
+        <span class="metrica">a <b class="num" id="spmCreativo">355</b> SPM</span>
       </div>
       <div class="alertas" id="alertas-creativo"></div>
     </div>
@@ -410,19 +420,24 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
   <section class="card modulo" id="mod-oferta">
     <div class="card-h">
       <span class="mod-punto" style="background:var(--ambar)"></span>
-      <h2>Copy Oferta</h2>
+      <h2>Copy Oferta / Institucional</h2>
       <span class="mod-lim">recomendado ≤ 8s</span>
-      <label class="sw"><input type="checkbox" id="tgl-oferta" checked aria-label="Activar Copy Oferta"><span></span></label>
+      <label class="sw"><input type="checkbox" id="tgl-oferta" checked aria-label="Activar Copy Oferta / Institucional"><span></span></label>
     </div>
     <div class="card-b">
+      <div class="campo" style="margin-bottom:14px">
+        <label for="estiloOferta">Estilo de locución de esta sección</label>
+        <select id="estiloOferta"></select>
+      </div>
       <div class="campo">
-        <label for="txOferta">Llamado a la acción (CTA)</label>
-        <textarea id="txOferta" class="chico" placeholder="Ej: Visita nuestra tienda y llévate el segundo a mitad de precio."></textarea>
+        <label for="txOferta">Cierre de marca, CTA o promoción</label>
+        <textarea id="txOferta" placeholder="Pega aquí el cierre de marca, el llamado a la acción o la promoción. Usualmente es el copy que leerá la voz de la marca. Selecciona el estilo de locución para más precisión. El ritmo de lectura en esta sección suele ser distinto al creativo."></textarea>
       </div>
       <div class="mod-foot">
         <span class="metrica" id="met-oferta"><b class="num" id="tOferta">0.0s</b> estimados</span>
         <span class="metrica"><b class="num" id="sOferta">0</b> sílabas</span>
         <span class="metrica"><b class="num" id="pOferta">0.0s</b> en pausas</span>
+        <span class="metrica">a <b class="num" id="spmOferta">355</b> SPM</span>
       </div>
       <div class="alertas" id="alertas-oferta"></div>
     </div>
@@ -469,7 +484,7 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
   <section class="cta">
     <p class="kicker">Melillo Sound</p>
     <h2>Soluciones hechas a la medida para agencias y marcas.</h2>
-    <p>Producción de audio publicitario, casting de voces, jingles y post-producción. Conecta con nosotros y llevemos tu guion al aire.</p>
+    <p>Producción de audio publicitario, estrategias de branding sonoro, música original y más. Conecta con nosotros y llevemos tu guion al aire.</p>
     <div class="cta-btns">
       <a class="cta-a" id="ctaMail" href="#">✉️ Escríbenos</a>
       <a class="cta-b" id="ctaWa" href="#" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
@@ -566,7 +581,12 @@ const COLORES = {
 };
 const NOMBRES = {
   audiologo:"AudioLogo", creativo:"Copy Creativo",
-  oferta:"Copy Oferta",  legal:"Copy Legal"
+  oferta:"Copy Oferta / Institucional", legal:"Copy Legal"
+};
+/* La leyenda del dock lleva cinco entradas en una franja estrecha: ahí van cortos. */
+const NOMBRES_CORTOS = {
+  audiologo:"AudioLogo", creativo:"Creativo",
+  oferta:"Oferta / Inst.", legal:"Legal"
 };
 
 const AVISO_CIFRAS = "Los números tardan más en leerse de lo que la fórmula sugiere " +
@@ -644,8 +664,8 @@ const state = {
   estilo: "natural",
   objetivo: { min:0, seg:30 },
   audiologo: { on:true,  duracion:3, posicion:"final", vo:"" },
-  creativo:  { on:true,  texto:"" },
-  oferta:    { on:true,  texto:"" },
+  creativo:  { on:true,  texto:"", estilo:"base" },
+  oferta:    { on:true,  texto:"", estilo:"base" },
   legal:     { on:false, texto:"", velocidad:"normal" },
   tema: "auto"
 };
@@ -669,6 +689,10 @@ function restaurar(){
       if (g[k]) Object.assign(state[k], g[k]);
     });
     if (VELOCIDAD_LEGAL[state.legal.velocidad] === undefined) state.legal.velocidad = "normal";
+    ["creativo","oferta"].forEach(function(k){
+      if (state[k].estilo !== "base" && !ESTILOS.some(function(e){ return e.id === state[k].estilo; }))
+        state[k].estilo = "base";
+    });
     if (state.audiologo.posicion !== "inicio") state.audiologo.posicion = "final";
     state.audiologo.duracion = clamp(state.audiologo.duracion, 0, 60);
     if (g.tema === "dark" || g.tema === "light" || g.tema === "auto") state.tema = g.tema;
@@ -684,10 +708,22 @@ function clamp(v, lo, hi){
    CÁLCULO GLOBAL
    ===================================================================== */
 
-function spmActual(){
-  const e = ESTILOS.find(function(x){ return x.id === state.estilo; });
-  return e ? e.spm : 355;
+function estiloBase(){
+  return ESTILOS.find(function(x){ return x.id === state.estilo; }) || ESTILOS[1];
 }
+
+/* Estilo efectivo de una sección: el suyo si lo fijaron, si no hereda el base.
+   El VO del AudioLogo y el Copy Legal usan siempre el base. */
+function estiloDe(clave){
+  const propio = state[clave] && state[clave].estilo;
+  if (propio && propio !== "base"){
+    const e = ESTILOS.find(function(x){ return x.id === propio; });
+    if (e) return e;
+  }
+  return estiloBase();
+}
+
+function spmActual(){ return estiloBase().spm; }
 
 /* Orden cronológico real del comercial. */
 function orden(){
@@ -701,16 +737,17 @@ function calcular(){
   const spm = spmActual();
   const objetivo = state.objetivo.min * 60 + state.objetivo.seg;
   const factorLegal = VELOCIDAD_LEGAL[state.legal.velocidad] || 1;
+  const estCreativo = estiloDe("creativo"), estOferta = estiloDe("oferta");
 
   const vo = tiempoBloque(state.audiologo.vo, spm, 1);
   const b = {
     /* El AudioLogo aporta su duración musical fija: el VO va superpuesto encima. */
     audiologo:{ on:state.audiologo.on, total:state.audiologo.on ? state.audiologo.duracion : 0,
                 vo:vo, silabas:vo.silabas, texto:state.audiologo.vo },
-    creativo: Object.assign({ on:state.creativo.on, texto:state.creativo.texto },
-                            tiempoBloque(state.creativo.texto, spm)),
-    oferta:   Object.assign({ on:state.oferta.on, texto:state.oferta.texto },
-                            tiempoBloque(state.oferta.texto, spm)),
+    creativo: Object.assign({ on:state.creativo.on, texto:state.creativo.texto, estilo:estCreativo },
+                            tiempoBloque(state.creativo.texto, estCreativo.spm)),
+    oferta:   Object.assign({ on:state.oferta.on, texto:state.oferta.texto, estilo:estOferta },
+                            tiempoBloque(state.oferta.texto, estOferta.spm)),
     legal:    Object.assign({ on:state.legal.on, texto:state.legal.texto, factor:factorLegal },
                             tiempoBloque(state.legal.texto, spm, factorLegal))
   };
@@ -752,6 +789,9 @@ function render(){
   const b = r.bloques;
 
   $("spmVal").textContent = r.spm;
+  $("lim-audiologo").textContent = state.audiologo.on
+    ? "Mi pauta tiene un audiologo" : "Mi pauta no tiene audiologo";
+  refrescarEstilos();
 
   /* --- AudioLogo --- */
   $("alVoTiempo").textContent = seg(b.audiologo.vo.total);
@@ -763,12 +803,13 @@ function render(){
     seg(state.audiologo.duracion) + ". No cabe encima: acorta el texto o alarga la música.");
 
   /* --- Bloques de texto --- */
-  [["creativo","tCreativo","sCreativo","pCreativo"],
-   ["oferta",  "tOferta",  "sOferta",  "pOferta"]].forEach(function(f){
+  [["creativo","tCreativo","sCreativo","pCreativo","spmCreativo"],
+   ["oferta",  "tOferta",  "sOferta",  "pOferta","spmOferta"]].forEach(function(f){
     const k = f[0], bl = b[k];
     $(f[1]).textContent = seg(bl.total);
     $(f[2]).textContent = bl.silabas;
     $(f[3]).textContent = seg(bl.pausas);
+    $(f[4]).textContent = bl.estilo.spm;
     const excede = bl.on && bl.total > LIMITES[k];
     $("met-" + k).classList.toggle("alerta", !!excede);
     pintarAlertas(k, bl, excede,
@@ -818,7 +859,7 @@ function render(){
     const s = document.createElement("span");
     s.innerHTML = '<i></i><span></span> <b></b>';
     s.firstChild.style.background = COLORES[k];
-    s.children[1].textContent = NOMBRES[k];
+    s.children[1].textContent = NOMBRES_CORTOS[k];
     s.lastChild.textContent = seg(b[k].total);
     ley.appendChild(s);
   });
@@ -867,8 +908,8 @@ function generarGuion(){
     }
   });
 
-  const estilo = ESTILOS.find(function(x){ return x.id === state.estilo; });
-  resumen.push("Estilo de locución: " + estilo.label + " (" + estilo.spm + " SPM)");
+  const base = estiloBase();
+  resumen.push("Estilo de locución base: " + base.label + " (" + base.spm + " SPM)");
   resumen.push("Pauta objetivo: " + seg(r.objetivo));
 
   orden().forEach(function(k){
@@ -878,7 +919,10 @@ function generarGuion(){
       resumen.push("AudioLogo (al " + donde + "): " + seg(b.audiologo.total) + " musicales" +
         (state.audiologo.vo.trim() ? " · VO superpuesto " + seg(b.audiologo.vo.total) : " · sin VO"));
     } else if (b[k].on && b[k].texto.trim()){
-      const extra = k === "legal" ? " · ritmo " + NOMBRE_VELOCIDAD[state.legal.velocidad] : "";
+      /* El ingeniero necesita saber a qué ritmo se midió cada sección, no solo el total. */
+      const extra = k === "legal"
+        ? " · ritmo " + NOMBRE_VELOCIDAD[state.legal.velocidad]
+        : " · " + b[k].estilo.label + " (" + b[k].estilo.spm + " SPM)";
       resumen.push(NOMBRES[k] + ": " + seg(b[k].total) + " · " + b[k].silabas + " sílabas" + extra);
     }
   });
@@ -941,13 +985,40 @@ function aplicarTema(){
 restaurar();
 
 /* Select de estilos */
+function etiquetaEstilo(e){ return e.label + " — " + e.spm + " SPM"; }
+
 const sel = $("estilo");
 ESTILOS.forEach(function(e){
   const o = document.createElement("option");
   o.value = e.id;
-  o.textContent = e.label + " — " + e.spm + " SPM";
+  o.textContent = etiquetaEstilo(e);
   sel.appendChild(o);
 });
+
+/* Cada sección locutable arranca con "Igual que el estilo base": así quien solo
+   quiere un ritmo para todo el comercial no tiene que tocar tres selectores. */
+["creativo","oferta"].forEach(function(k){
+  const s2 = $("estilo" + k.charAt(0).toUpperCase() + k.slice(1));
+  const heredar = document.createElement("option");
+  heredar.value = "base";
+  s2.appendChild(heredar);
+  ESTILOS.forEach(function(e){
+    const o = document.createElement("option");
+    o.value = e.id;
+    o.textContent = etiquetaEstilo(e);
+    s2.appendChild(o);
+  });
+  s2.value = state[k].estilo;
+});
+
+/* La etiqueta de la opción heredada nombra el estilo base vigente, así que se
+   reescribe cada vez que el base cambia. */
+function refrescarEstilos(){
+  const txt = "Igual que el estilo base (" + etiquetaEstilo(estiloBase()) + ")";
+  ["creativo","oferta"].forEach(function(k){
+    $("estilo" + k.charAt(0).toUpperCase() + k.slice(1)).options[0].textContent = txt;
+  });
+}
 
 /* Volcar el estado en los controles */
 sel.value = state.estilo;
@@ -987,6 +1058,8 @@ Array.prototype.slice.call(document.querySelectorAll(".chip")).forEach(function(
 function on(id, evento, fn){ $(id).addEventListener(evento, function(){ fn(); render(); }); }
 
 on("estilo","change", function(){ state.estilo = sel.value; });
+on("estiloCreativo","change", function(){ state.creativo.estilo = $("estiloCreativo").value; });
+on("estiloOferta","change",   function(){ state.oferta.estilo   = $("estiloOferta").value; });
 on("objMin","input",  function(){ state.objetivo.min = clamp($("objMin").value, 0, 59); marcarChips(); });
 on("objSeg","input",  function(){ state.objetivo.seg = clamp($("objSeg").value, 0, 59); marcarChips(); });
 on("alDur","input",   function(){ state.audiologo.duracion = clamp($("alDur").value, 0, 60); });

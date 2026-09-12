@@ -100,6 +100,20 @@ Los puntos suspensivos se consumen **antes** de contar puntos simples: de lo con
 
 > **Tiempo del bloque = Tiempo base + Tiempo de puntuación**
 
+### Un estilo base, y overrides por sección
+
+El selector de arriba fija el **estilo base** del proyecto. Copy Creativo y Copy Oferta /
+Institucional tienen además su propio selector, cuya primera opción — *«Igual que el estilo base»* —
+viene marcada por defecto: cambiar el base mueve las secciones que no hayas tocado, y una sección
+con estilo propio queda fijada.
+
+Existe porque un comercial real rara vez tiene un solo ritmo: la dramatización del creativo la hacen
+actores de doblaje y el cierre de marca lo lee un locutor institucional. Cada sección muestra en su
+pie el SPM con el que se está midiendo.
+
+El **VO del AudioLogo** usa siempre el estilo base. El **Copy Legal** no lleva selector de estilo:
+usa el base con su multiplicador de velocidad, porque ahí lo que importa es la rapidez.
+
 ### Reglas específicas por bloque
 
 - **AudioLogo** — aporta a la pauta su **duración musical fija**, no el tiempo del VO.
@@ -120,7 +134,7 @@ fórmula sin `?` ni `!`, pon `PAUSAS.cierre` en `0`.
 ## Alertas
 
 - 🔴 **Densidad** — un módulo supera lo recomendado: Copy Creativo > 20s,
-  Copy Oferta > 8s, Copy Legal > 6s, o el VO no cabe en el AudioLogo.
+  Copy Oferta / Institucional > 8s, Copy Legal > 6s, o el VO no cabe en el AudioLogo.
 - 🟠 **Cifras** — el texto contiene números o una «X» usada como «por» (2 X 1).
   La fórmula los subestima: `1999` es una palabra pero ocho sílabas.
 
@@ -147,7 +161,7 @@ para el ingeniero de mezcla con los tiempos de cada sección y el estilo elegido
 ## Pruebas
 
 `tests/verify.mjs` cubre el motor de cálculo, las alertas, los veredictos, el render de
-la barra, el guion final el logotipo por tema y el diseño responsivo (63 aserciones).
+la barra, el guion final los estilos por sección, el logotipo por tema y el diseño responsivo (95 aserciones).
 
 ```bash
 npm install -D playwright   # si aún no está disponible

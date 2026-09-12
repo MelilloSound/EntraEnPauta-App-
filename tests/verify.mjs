@@ -273,6 +273,154 @@ for (const archivo of ['melillo-sound.svg', 'melillo-sound-dark.svg']) {
   check(`assets/${archivo} carga correctamente`, cargado);
 }
 
+// ── 9. Estilo por sección ───────────────────────────────────
+console.log('\n9. Estilo de locución por sección');
+
+await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+await page.reload();
+await page.setViewportSize({ width: 1440, height: 900 });
+
+check('Creativo y Oferta arrancan heredando el estilo base',
+  (await page.inputValue('#estiloCreativo')) === 'base' &&
+  (await page.inputValue('#estiloOferta')) === 'base');
+
+const etiquetaHeredar = await page.$eval('#estiloCreativo option', o => o.textContent);
+check('la opción heredada nombra el estilo base vigente',
+  etiquetaHeredar === 'Igual que el estilo base (Natural / Conversacional — 355 SPM)', etiquetaHeredar);
+
+await page.selectOption('#estilo', 'trailer');   // 220 SPM
+await page.waitForTimeout(60);
+const etiquetaTrailer = await page.$eval('#estiloCreativo option', o => o.textContent);
+check('la etiqueta heredada se reescribe al cambiar el base',
+  etiquetaTrailer === 'Igual que el estilo base (Tráiler de Película — 220 SPM)', etiquetaTrailer);
+
+// Mismo texto en ambas secciones: heredando, deben medir igual.
+const frase = 'Bienvenido a la nueva era de nuestra marca.';
+await page.selectOption('#estilo', 'natural');
+await page.fill('#txCreativo', frase);
+await page.fill('#txOferta', frase);
+await page.waitForTimeout(60);
+check('heredando el base, Creativo y Oferta miden igual',
+  (await page.textContent('#tCreativo')) === (await page.textContent('#tOferta')));
+check('el pie de Creativo muestra el SPM heredado', (await page.textContent('#spmCreativo')) === '355');
+
+// Fijar Oferta en Institucional (310 SPM) la separa del base.
+await page.selectOption('#estiloOferta', 'institucional');
+await page.waitForTimeout(60);
+check('el pie de Oferta muestra su SPM propio', (await page.textContent('#spmOferta')) === '310');
+
+const esperado = await page.evaluate(f => EEP.tiempoBloque(f, 310).total, frase);
+check('Oferta se calcula con 310 SPM',
+  Math.abs(parseFloat(await page.textContent('#tOferta')) - Math.round(esperado * 10) / 10) < 0.051,
+  `UI ${await page.textContent('#tOferta')} vs motor ${esperado.toFixed(2)}s`);
+check('Creativo y Oferta ya no miden igual',
+  (await page.textContent('#tCreativo')) !== (await page.textContent('#tOferta')));
+
+// Mover el base arrastra a quien hereda, no a quien está fijado.
+const ofertaAntes = await page.textContent('#tOferta');
+const creativoAntes = await page.textContent('#tCreativo');
+await page.selectOption('#estilo', 'promocional');   // 415 SPM
+await page.waitForTimeout(60);
+check('cambiar el base mueve la sección que hereda',
+  (await page.textContent('#tCreativo')) !== creativoAntes);
+check('cambiar el base NO mueve la sección fijada a mano',
+  (await page.textContent('#tOferta')) === ofertaAntes);
+check('el pie de Creativo sigue al base', (await page.textContent('#spmCreativo')) === '415');
+
+// Persistencia y saneamiento de lo guardado.
+await page.reload();
+await page.waitForTimeout(80);
+check('el estilo fijado sobrevive al recargar',
+  (await page.inputValue('#estiloOferta')) === 'institucional');
+
+await page.evaluate(() => {
+  const g = JSON.parse(localStorage.getItem('entraenpauta.v1'));
+  g.oferta.estilo = 'estilo-que-no-existe';
+  localStorage.setItem('entraenpauta.v1', JSON.stringify(g));
+});
+await page.reload();
+await page.waitForTimeout(80);
+check('un estilo inválido guardado vuelve a heredar el base',
+  (await page.inputValue('#estiloOferta')) === 'base');
+
+// El resumen técnico debe decir a qué ritmo se midió cada sección.
+await page.selectOption('#estiloOferta', 'institucional');
+await page.fill('#txCreativo', frase);
+await page.fill('#txOferta', frase);
+await page.click('#generarBtn');
+await page.waitForTimeout(120);
+const resumen = await page.inputValue('#guionTxt');
+await page.click('#cerrarBtn');
+check('el resumen nombra el estilo base', /Estilo de locución base: /.test(resumen));
+check('el resumen da el estilo de Copy Creativo',
+  /Copy Creativo:.*\(\d+ SPM\)/.test(resumen), resumen.split('\n').find(l => l.startsWith('Copy Creativo')));
+check('el resumen da el estilo de Copy Oferta / Institucional',
+  /Copy Oferta \/ Institucional:.*Institucional \/ Voz de Marca \(310 SPM\)/.test(resumen),
+  resumen.split('\n').find(l => l.startsWith('Copy Oferta')));
+
+// ── 10. Textos de la interfaz ──────────────────────────────
+console.log('\n10. Textos de la interfaz');
+
+const textos = await page.evaluate(() => ({
+  dur:      document.querySelector('label[for="alDur"]').textContent,
+  vo:       document.getElementById('alVo').placeholder,
+  creativo: document.getElementById('txCreativo').placeholder,
+  oferta:   document.getElementById('txOferta').placeholder,
+  labOferta:document.querySelector('label[for="txOferta"]').textContent,
+  titulo:   document.querySelector('#mod-oferta h2').textContent,
+  cta:      document.querySelector('.cta p:last-of-type').textContent,
+  base:     document.querySelector('label[for="estilo"]').textContent,
+}));
+check('label de duración del AudioLogo', textos.dur === 'Duración del AudioLogo (segundos)', textos.dur);
+check('placeholder del VO', textos.vo === 'Ej: Toyota. Vayamos juntos', textos.vo);
+check('placeholder del Copy Creativo', textos.creativo.startsWith('Pega aquí únicamente los diálogos'));
+check('placeholder del Copy Oferta', textos.oferta.startsWith('Pega aquí el cierre de marca'));
+check('label del Copy Oferta', textos.labOferta === 'Cierre de marca, CTA o promoción', textos.labOferta);
+check('título renombrado', textos.titulo === 'Copy Oferta / Institucional', textos.titulo);
+check('CTA del footer actualizado', textos.cta.includes('branding sonoro, música original'), textos.cta);
+check('selector de arriba es el estilo base', textos.base === 'Estilo de locución base', textos.base);
+
+// El placeholder largo de Oferta no puede quedar cortado.
+const alturaOferta = await page.evaluate(() => {
+  const t = document.getElementById('txOferta');
+  const previo = t.value; t.value = '';
+  const cabe = t.scrollHeight <= t.clientHeight;
+  t.value = previo;
+  return cabe;
+});
+check('el placeholder de Oferta no queda cortado', alturaOferta);
+
+// Encabezado del AudioLogo según el toggle.
+const lim = async () => (await page.textContent('#lim-audiologo')).trim();
+check('AudioLogo encendido → "Mi pauta tiene un audiologo"', (await lim()) === 'Mi pauta tiene un audiologo', await lim());
+await page.click('#tgl-audiologo');
+await page.waitForTimeout(60);
+check('AudioLogo apagado → "Mi pauta no tiene audiologo"', (await lim()) === 'Mi pauta no tiene audiologo', await lim());
+check('el encabezado sigue visible con el módulo apagado',
+  await page.isVisible('#lim-audiologo'));
+await page.click('#tgl-audiologo');
+await page.waitForTimeout(60);
+check('vuelve al encender', (await lim()) === 'Mi pauta tiene un audiologo');
+
+// Los dos campos del AudioLogo deben alinear sus inputs pese a etiquetas de
+// distinto alto, y apilarse en pantallas angostas en vez de estrujarse.
+for (const [nombre, ancho, apilados] of [['escritorio', 1440, false], ['móvil', 390, true]]) {
+  await page.setViewportSize({ width: ancho, height: 900 });
+  await page.waitForTimeout(80);
+  const campos = await page.evaluate(() => {
+    const r = n => document.getElementById(n).getBoundingClientRect();
+    return { dur: r('alDur'), pos: r('alPos') };
+  });
+  const mismaFila = Math.abs(campos.dur.top - campos.pos.top) < 2;
+  check(`los campos del AudioLogo ${apilados ? 'se apilan' : 'alinean sus inputs'} en ${nombre}`,
+    apilados ? !mismaFila : mismaFila,
+    `input ${campos.dur.top} vs select ${campos.pos.top}`);
+  if (!apilados) check('input y select tienen la misma altura',
+    Math.abs(campos.dur.height - campos.pos.height) < 1,
+    `${campos.dur.height} vs ${campos.pos.height}`);
+}
+await page.setViewportSize({ width: 1440, height: 900 });
+
 // ── Capturas opcionales ───────────────────────────────────────────────
 if (conCapturas) {
   const dir = resolve(raiz, 'tests/output');
