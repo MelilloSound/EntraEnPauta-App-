@@ -9,6 +9,9 @@ Guía de un solo camino, en orden. Cada paso dice qué esperar y cómo saber que
 | `entraenpauta.melillosound.com` | La herramienta | GitHub Pages (este repo) |
 | `melillosound.com/entraenpauta-app` | Página de aterrizaje con el formulario | Squarespace |
 
+**Dónde se toca cada cosa:** el dominio está registrado en **Porkbun** (ahí va el DNS) y la web
+está alojada en **Squarespace** (ahí va la página de aterrizaje). Son dos paneles distintos.
+
 ## Por qué no va directo en Squarespace
 
 Squarespace no puede servir un archivo HTML propio en una ruta: no hay FTP ni acceso a la raíz.
@@ -45,20 +48,37 @@ GitHub avisará de que el DNS todavía no responde. Es lo normal: falta el paso 
 
 > El archivo `CNAME` del repo ya lleva ese dominio, así que el campo puede rellenarse solo.
 
-## 4 · Crear el registro DNS en Squarespace
+## 4 · Crear el registro DNS en Porkbun
 
-**Settings → Domains → melillosound.com → DNS Settings → Add record**
+El dominio está registrado en **Porkbun**, no en Squarespace: el registro va ahí. Squarespace
+solo aloja la web; el DNS lo gobierna quien tiene los nameservers.
+
+**porkbun.com → Account → Domain Management → melillosound.com → DNS Records**
 
 | Campo | Valor |
 |---|---|
 | Type | `CNAME` |
 | Host | `entraenpauta` |
-| Data / Points to | `melillosound.github.io` |
+| Answer | `melillosound.github.io` |
+| TTL | `600` |
 
-Guarda. La propagación tarda de unos minutos a unas horas.
+En **Host** va solo la etiqueta del subdominio, `entraenpauta`, no el dominio completo: Porkbun
+le añade `melillosound.com` por su cuenta. En **Answer** va el destino sin `https://` y sin barra
+final. Pulsa **Add**.
 
-**Importante:** si ya existe otro registro con el host `entraenpauta` (de tipo A, AAAA o CNAME),
-bórralo. Un registro duplicado es la causa más común de que el certificado no se emita.
+La propagación tarda de unos minutos a unas horas.
+
+**Si Porkbun rechaza el registro** con «A CNAME or ALIAS record with that host already exists», es
+que ya hay algo en ese host: bórralo primero. Un registro duplicado es también la causa más común
+de que el certificado de GitHub no llegue a emitirse.
+
+> **Cómo confirmar que Porkbun es el sitio correcto:** en su panel deberías ver los registros que
+> hoy apuntan `melillosound.com` a Squarespace (direcciones que empiezan por `198.185.159.` o
+> `198.49.23.`). Si los ves, estás donde toca. Si el panel está vacío o dice que los nameservers
+> son de otro proveedor, el DNS se gestiona allí y el registro va en ese otro panel.
+
+Referencias: [añadir registros DNS en Porkbun](https://kb.porkbun.com/article/231-how-to-add-dns-records-on-porkbun)
+y [conectar un dominio de Porkbun a GitHub Pages](https://kb.porkbun.com/article/64-how-to-connect-your-domain-to-github-pages).
 
 ## 5 · Esperar el certificado y forzar HTTPS
 
