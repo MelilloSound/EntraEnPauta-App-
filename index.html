@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="es" data-tema="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EntraEnPauta · Melillo Sound</title>
+<meta name="description" content="Predice si tu guion publicitario cabe en la pauta antes de ir al estudio. Modelo predictivo de duración de locución calibrado para español de Latinoamérica.">
+
+<!-- ⚠ BETA CERRADA: quitar esta línea el día del lanzamiento público.
+     Es el primer punto de la lista en DEPLOY.md. Mientras esté, Google no indexa. -->
+<meta name="robots" content="noindex">
+
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="alternate icon" type="image/png" href="assets/favicon-32.png">
+
+<!-- Tarjeta al compartir el enlace. Las URL han de ser absolutas: una ruta
+     relativa no resuelve cuando WhatsApp o X leen la página. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Melillo Sound">
+<meta property="og:locale" content="es_LA">
+<meta property="og:title" content="EntraEnPauta · ¿Tu guion cabe en la pauta?">
+<meta property="og:description" content="Predice al segundo si tu guion publicitario cabe en 60, 30, 20 o 15 segundos, antes de pagar el estudio. Gratis, de Melillo Sound.">
+<meta property="og:url" content="https://entraenpauta.melillosound.com/">
+<meta property="og:image" content="https://entraenpauta.melillosound.com/assets/og-entraenpauta.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EntraEnPauta, predictor de duración para guiones publicitarios de Melillo Sound.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EntraEnPauta · ¿Tu guion cabe en la pauta?">
+<meta name="twitter:description" content="Predice al segundo si tu guion publicitario cabe en 60, 30, 20 o 15 segundos, antes de pagar el estudio.">
+<meta name="twitter:image" content="https://entraenpauta.melillosound.com/assets/og-entraenpauta.png">
+<style>
+/* ---------- Tokens: claro por defecto ---------- */
+:root{
+  --bg:#EEF1F5; --panel:#FFFFFF; --panel-2:#F6F8FA; --linea:#DCE2EA;
+  --txt:#111826; --txt-2:#5A6779; --txt-3:#8B97A8;
+  --acento:#0E6E70; --acento-txt:#FFFFFF; --anillo:rgba(14,110,112,.35);
+  --rosa:#EC4899; --teal:#14B8A6; --ambar:#F59E0B; --purpura:#A855F7; --rojo:#EF4444;
+  --verde-d:#16A34A; --amarillo-d:#EAB308; --naranja-d:#F97316; --rojo-d:#DC2626;
+  --sombra:0 1px 2px rgba(16,24,40,.05), 0 8px 24px -12px rgba(16,24,40,.18);
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-tema="light"]){
+    --bg:#0B0F16; --panel:#131A24; --panel-2:#0F1620; --linea:#25303F;
+    --txt:#E9EEF5; --txt-2:#9AA8BC; --txt-3:#6B7A90;
+    --acento:#35B3B0; --acento-txt:#04211E; --anillo:rgba(53,179,176,.34);
+    --verde-d:#22C55E; --amarillo-d:#FACC15; --naranja-d:#FB923C; --rojo-d:#F87171;
+    --sombra:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-tema="dark"]{
+  --bg:#0B0F16; --panel:#131A24; --panel-2:#0F1620; --linea:#25303F;
+  --txt:#E9EEF5; --txt-2:#9AA8BC; --txt-3:#6B7A90;
+  --acento:#2DD4BF; --acento-txt:#04211E; --anillo:rgba(45,212,191,.32);
+  --verde-d:#22C55E; --amarillo-d:#FACC15; --naranja-d:#FB923C; --rojo-d:#F87171;
+  --sombra:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{color-scheme:light dark}
+body{
+  margin:0; background:var(--bg); color:var(--txt);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; padding-bottom:172px;
+}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0; font-weight:650; letter-spacing:-.01em}
+button,input,select,textarea{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--acento); outline-offset:2px; border-radius:6px}
+
+/* ---------- Header ---------- */
+.topbar{
+  position:sticky; top:0; z-index:30;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  padding-block:12px; padding-inline:20px;
+  background:color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter:saturate(180%) blur(12px);
+  border-bottom:1px solid var(--linea);
+}
+.brand{display:flex; align-items:center; gap:14px; min-width:0}
+.logo{height:34px; width:auto; max-width:190px; display:block}
+.brand-sep{width:1px; height:30px; background:var(--linea); flex:none}
+.brand-txt{display:flex; flex-direction:column; min-width:0}
+.app-name{font-size:16px; font-weight:700; letter-spacing:-.02em}
+.app-name b{color:var(--acento); font-weight:700}
+.app-tag{font-size:11.5px; color:var(--txt-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.topbar-sp{flex:1 1 auto}
+.icon-btn{
+  display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+  background:var(--panel-2); border:1px solid var(--linea); color:var(--txt-2);
+  padding:7px 12px; border-radius:9px; font-size:13px; font-weight:550;
+}
+.icon-btn:hover{color:var(--txt); border-color:var(--acento)}
+
+/* ---------- Layout ---------- */
+main{max-width:940px; margin:0 auto; padding-inline:16px; padding-block:22px 8px}
+.card{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r); box-shadow:var(--sombra); margin-bottom:16px;
+}
+.card-h{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:14px 18px; border-bottom:1px solid var(--linea);
+}
+.card-h h2{font-size:14px; letter-spacing:.02em}
+.card-b{padding:18px}
+.eyebrow{
+  font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--txt-3); margin-bottom:14px;
+}
+
+/* ---------- Configuración ---------- */
+.cfg-grid{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+.campo{display:flex; flex-direction:column; gap:7px}
+.campo > label, .sub-lab{font-size:12px; font-weight:600; color:var(--txt-2)}
+select,input[type="text"],input[type="number"],textarea{
+  background:var(--panel-2); border:1px solid var(--linea); color:var(--txt);
+  border-radius:10px; padding:10px 12px; width:100%;
+}
+/* Sin esto un <select> queda unos 4px mas bajo que un <input type=number>
+   y los controles de una misma fila no cierran a la misma altura. */
+select,input[type="text"],input[type="number"]{line-height:1.45; height:45px}
+select:focus,input:focus,textarea:focus{border-color:var(--acento); box-shadow:0 0 0 3px var(--anillo); outline:none}
+.rapidos{display:flex; gap:8px; flex-wrap:wrap}
+.chip{
+  cursor:pointer; background:var(--panel-2); border:1px solid var(--linea);
+  color:var(--txt-2); padding:8px 14px; border-radius:999px;
+  font-size:13px; font-weight:600; transition:.12s;
+}
+.chip:hover{border-color:var(--acento); color:var(--txt)}
+.chip[aria-pressed="true"]{background:var(--acento); border-color:var(--acento); color:var(--acento-txt)}
+.tiempo-inputs{display:flex; align-items:flex-end; gap:10px}
+.tiempo-inputs .campo{flex:1; min-width:0}
+.tiempo-inputs .dosp{padding-bottom:11px; color:var(--txt-3); font-weight:700}
+
+/* ---------- Módulos ---------- */
+.modulo{transition:border-color .15s}
+.modulo.off .card-b{display:none}
+.modulo.off{opacity:.62}
+.modulo.densidad{border-color:var(--rojo)}
+.mod-punto{width:9px; height:9px; border-radius:3px; flex:none}
+.modulo .card-h h2{flex:1; min-width:0}
+.mod-lim{font-size:11px; color:var(--txt-3); font-weight:500; white-space:nowrap}
+
+/* switch */
+.sw{position:relative; width:40px; height:23px; flex:none; cursor:pointer}
+.sw input{position:absolute; inset:0; opacity:0; margin:0; cursor:pointer; z-index:1}
+.sw span{
+  position:absolute; inset:0; background:var(--linea);
+  border-radius:999px; transition:.16s; pointer-events:none;
+}
+.sw span::after{
+  content:""; position:absolute; top:3px; left:3px; width:17px; height:17px;
+  background:#fff; border-radius:50%; transition:.16s;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.sw input:checked + span{background:var(--acento)}
+.sw input:checked + span::after{transform:translateX(17px)}
+.sw input:focus-visible + span{box-shadow:0 0 0 3px var(--anillo)}
+
+textarea{min-height:120px; resize:vertical; line-height:1.6}
+textarea.chico{min-height:76px}
+.mod-foot{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  margin-top:12px; padding-top:12px; border-top:1px dashed var(--linea);
+}
+.metrica{display:flex; align-items:baseline; gap:6px; font-size:12.5px; color:var(--txt-3)}
+.metrica b{font-size:16px; font-weight:700; color:var(--txt)}
+.metrica.alerta b{color:var(--rojo-d)}
+.alertas{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+.alertas:empty{display:none}
+.alerta{
+  display:flex; gap:9px; align-items:flex-start;
+  font-size:12.5px; line-height:1.45; padding:10px 12px; border-radius:10px;
+  border:1px solid; background:var(--panel-2);
+}
+.alerta.roja{border-color:var(--rojo); color:var(--rojo-d); background:color-mix(in srgb,var(--rojo) 9%,var(--panel))}
+.alerta.ambar{border-color:var(--ambar); color:var(--naranja-d); background:color-mix(in srgb,var(--ambar) 10%,var(--panel))}
+.alerta i{font-style:normal; flex:none}
+/* align-items:flex-end alinea los inputs aunque una etiqueta ocupe dos lineas;
+   la base de 200px hace que los campos se apilen en telefonos en vez de estrujarse. */
+.fila{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; align-items:flex-end}
+.fila .campo{flex:1 1 200px}
+
+/* ---------- Dock inferior ---------- */
+.dock{
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  background:color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter:saturate(180%) blur(14px);
+  border-top:1px solid var(--linea); box-shadow:0 -8px 30px -18px rgba(0,0,0,.5);
+}
+.dock-in{max-width:940px; margin:0 auto; padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.dock-top{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:9px}
+.dock-top .lab{font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-3)}
+.total{font-size:22px; font-weight:750; letter-spacing:-.02em}
+.total .de{font-size:14px; font-weight:500; color:var(--txt-3)}
+.pct{margin-left:auto; font-size:13px; font-weight:700; color:var(--txt-2)}
+
+.barra{
+  position:relative; height:22px; border-radius:8px; overflow:hidden;
+  background:var(--panel-2); border:1px solid var(--linea); display:flex;
+}
+.seg{height:100%; transition:width .16s ease}
+.seg.excedente{
+  background:repeating-linear-gradient(45deg,var(--rojo) 0 7px,color-mix(in srgb,var(--rojo) 65%,#000) 7px 14px);
+}
+.marca{
+  position:absolute; top:0; bottom:0; width:2px; background:var(--txt);
+  opacity:.75; pointer-events:none; display:none;
+}
+.marca::after{
+  content:"PAUTA"; position:absolute; top:50%; left:5px; transform:translateY(-50%);
+  font-size:8.5px; font-weight:800; letter-spacing:.1em; color:var(--txt); white-space:nowrap;
+}
+.leyenda{display:flex; gap:14px; flex-wrap:wrap; margin-top:9px}
+.leyenda span{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:var(--txt-3)}
+.leyenda i{width:9px; height:9px; border-radius:3px; display:block}
+.leyenda b{color:var(--txt-2); font-weight:650}
+
+.diag{
+  display:flex; align-items:center; gap:11px; margin-top:11px;
+  padding:11px 14px; border-radius:11px; border:1px solid var(--linea);
+  background:var(--panel-2); font-size:13px; font-weight:650; line-height:1.35;
+}
+.diag .ico{font-size:15px; flex:none}
+.diag.verde   {border-color:var(--verde-d);    color:var(--verde-d);    background:color-mix(in srgb,var(--verde-d) 10%,var(--panel))}
+.diag.amarillo{border-color:var(--amarillo-d); color:var(--naranja-d);  background:color-mix(in srgb,var(--amarillo-d) 12%,var(--panel))}
+.diag.naranja {border-color:var(--naranja-d);  color:var(--naranja-d);  background:color-mix(in srgb,var(--naranja-d) 11%,var(--panel))}
+.diag.rojo    {border-color:var(--rojo-d);     color:var(--rojo-d);     background:color-mix(in srgb,var(--rojo-d) 10%,var(--panel))}
+.diag .btn-gen{margin-left:auto}
+
+/* ---------- Botones ---------- */
+.btn{
+  cursor:pointer; border:1px solid transparent; border-radius:11px;
+  padding:11px 20px; font-size:14px; font-weight:700; letter-spacing:-.01em;
+  display:inline-flex; align-items:center; gap:9px; transition:.13s; white-space:nowrap;
+}
+.btn-pri{background:var(--acento); color:var(--acento-txt)}
+.btn-pri:hover{filter:brightness(1.08)}
+.btn-sec{background:var(--panel-2); border-color:var(--linea); color:var(--txt)}
+.btn-sec:hover{border-color:var(--acento)}
+.btn-gen{padding:9px 17px; font-size:13px}
+.acciones{display:flex; justify-content:center; padding:6px 0 26px}
+.acciones .btn{padding:14px 30px; font-size:15px}
+
+/* ---------- Modal ---------- */
+dialog{
+  border:1px solid var(--linea); border-radius:var(--r); background:var(--panel);
+  color:var(--txt); padding:0; width:min(880px,calc(100vw - 32px)); max-height:90vh;
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.55);
+}
+dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
+.dlg-h{display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--linea)}
+.dlg-h h2{flex:1; font-size:15px}
+.dlg-b{padding:18px 20px; overflow:auto; max-height:58vh}
+/* Ya no se muestra: solo existe para el respaldo de copia con execCommand,
+   que necesita un elemento real y seleccionable en el documento. */
+#guionTxt{position:absolute; left:-9999px; width:1px; height:1px; opacity:0}
+
+/* ---------- Hoja A4 del guion final ----------
+   Se pinta siempre con colores de papel en los dos temas: es la vista previa
+   honesta de lo que sale por la impresora. */
+.dlg-b.papel{background:var(--panel-2); padding:22px}
+.hoja{
+  width:210mm; max-width:100%; margin:0 auto;
+  background:#FFFFFF; color:#151A21;
+  padding:15mm 17mm; box-shadow:0 2px 16px rgba(0,0,0,.22);
+  font-size:15px; line-height:1.55;
+}
+.hoja h1{font-size:22px; font-weight:700; letter-spacing:-.02em; margin:0 0 11px; text-wrap:balance}
+.hoja-meta{display:flex; flex-wrap:wrap; gap:3px 26px; font-size:12.5px; color:#4C5868; margin:0}
+.hoja-meta b{color:#151A21; font-weight:650}
+.hoja-dir{font-size:12.5px; color:#4C5868; margin:9px 0 0; white-space:pre-wrap}
+.hoja-dir b{color:#151A21; font-weight:650}
+.hoja-regla{border:0; border-top:1px solid #C9D1DB; margin:17px 0}
+.hoja h2{
+  font-size:10.5px; font-weight:800; letter-spacing:.17em; text-transform:uppercase;
+  color:#6B7789; margin:0 0 13px;
+}
+.hoja-guion{margin-bottom:26px}
+.hoja-guion p{margin:0 0 14px; font-size:15.5px; line-height:1.75; white-space:pre-wrap}
+.hoja-guion p:last-child{margin-bottom:0}
+
+/* Línea del tiempo: solo tinta, sin color. Cada celda lleva su tramo y su
+   etiqueta, así barra y textos comparten geometría y no pueden desalinearse. */
+.lt{display:flex; position:relative; padding-top:18px}
+.lt-celda{flex-basis:0; min-width:62px; text-align:center}
+.lt-tramo{height:30px; border:1px solid #151A21; border-right:0}
+.lt-celda:last-child .lt-tramo{border-right:1px solid #151A21}
+.lt-nombre{font-size:10.5px; color:#4C5868; margin-top:8px; line-height:1.3; padding:0 3px}
+.lt-seg{font-size:13.5px; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums}
+.lt-marca{position:absolute; top:18px; height:30px; border-left:2px dashed #151A21}
+.lt-marca span{
+  position:absolute; bottom:100%; left:50%; transform:translateX(-50%); margin-bottom:4px;
+  font-size:9px; font-weight:800; letter-spacing:.09em; white-space:nowrap; color:#151A21;
+}
+.hoja-estilos{font-size:11.5px; color:#4C5868; margin:20px 0 0}
+.hoja-total{
+  font-size:15px; font-weight:700; margin:15px 0 0; padding-top:13px;
+  border-top:1px solid #C9D1DB; font-variant-numeric:tabular-nums;
+}
+.hoja-total em{font-style:normal; color:#B42318}
+.dlg-f{display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:14px 20px; border-top:1px solid var(--linea)}
+.dlg-f .ok{margin-right:auto; font-size:12.5px; color:var(--verde-d); font-weight:650; opacity:0; transition:.2s}
+.dlg-f .ok.on{opacity:1}
+
+/* ---------- Footer CTA ---------- */
+.cta-wrap{max-width:940px; margin:0 auto; padding:0 16px 30px}
+.cta{
+  position:relative; overflow:hidden; border-radius:18px; padding:34px 30px;
+  background:linear-gradient(135deg,#0E6E70 0%,#0A4548 52%,#06282B 100%);
+  color:#F0FDFA; text-align:center;
+}
+.cta::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(closest-side at 78% 12%, rgba(79,195,192,.32), transparent 72%);
+}
+.cta > *{position:relative}
+.cta .kicker{font-size:10.5px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:#6FD3D0; margin-bottom:12px}
+.cta h2{font-size:clamp(19px,3.4vw,25px); line-height:1.3; max-width:30ch; margin:0 auto 10px}
+.cta p{margin:0 auto 22px; max-width:46ch; font-size:13.5px; color:#9FD8D6; line-height:1.6}
+.cta-btns{display:flex; gap:11px; justify-content:center; flex-wrap:wrap}
+.cta-btns a{
+  text-decoration:none; border-radius:11px; padding:12px 22px;
+  font-size:14px; font-weight:700; display:inline-flex; align-items:center; gap:9px; transition:.13s;
+}
+.cta-a{background:#F0FDFA; color:#0E6E70}
+.cta-a:hover{transform:translateY(-1px)}
+.cta-b{background:rgba(240,253,250,.1); color:#F0FDFA; border:1px solid rgba(240,253,250,.3)}
+.cta-b:hover{background:rgba(240,253,250,.18)}
+.creditos{text-align:center; font-size:11.5px; color:var(--txt-3); padding:0 16px 18px; line-height:1.7}
+.beta{display:inline-flex; align-items:center; gap:6px; margin-top:5px}
+.beta b{
+  background:color-mix(in srgb, var(--acento) 16%, transparent); color:var(--acento);
+  border-radius:999px; padding:1px 8px; font-size:10px; font-weight:800;
+  letter-spacing:.08em; text-transform:uppercase;
+}
+.beta a{color:var(--txt-2); text-decoration:underline; text-underline-offset:2px}
+.beta a:hover{color:var(--acento)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:720px){
+  .cfg-grid{grid-template-columns:1fr; gap:18px}
+  .app-tag{display:none}
+  .logo{height:29px}
+}
+@media (max-width:640px){
+  body{padding-bottom:196px}
+  .topbar{padding-inline:16px}
+  .card-b{padding:15px}
+  .total{font-size:19px}
+  .leyenda{gap:10px}
+  .diag{flex-wrap:wrap}
+  .diag .btn-gen{margin-left:0; width:100%; justify-content:center}
+  .cta{padding:28px 20px}
+  .cta-btns a{width:100%; justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+/* Impresión: sale la hoja y nada más. El <dialog> vive en la capa superior,
+   así que hay que desmontarle el cromado para que no imprima su marco. */
+@page{ size:A4; margin:15mm }
+@media print{
+  html,body{background:#fff !important}
+  body{padding:0 !important}
+  body > *{display:none !important}
+  dialog[open]{
+    display:block !important; position:static !important; margin:0 !important;
+    width:auto !important; max-width:none !important; max-height:none !important;
+    border:0 !important; border-radius:0 !important; box-shadow:none !important;
+    background:#fff !important; color:#151A21 !important;
+  }
+  dialog::backdrop{display:none !important}
+  .dlg-h,.dlg-f{display:none !important}
+  .dlg-b.papel{padding:0 !important; overflow:visible !important; max-height:none !important; background:#fff !important}
+  .hoja{
+    width:auto !important; max-width:none !important; padding:0 !important;
+    box-shadow:none !important; font-size:11.5pt;
+  }
+  .hoja-guion p{font-size:12pt}
+  .hoja h2,.hoja-total{break-after:avoid}
+  .lt{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <!-- LOGO: hay dos variantes porque el wordmark es oscuro y no se leería sobre el
+         tema oscuro. Para usar los archivos oficiales reemplaza assets/melillo-sound.svg
+         (interfaz clara) y assets/melillo-sound-dark.svg (interfaz oscura), conservando
+         esos nombres. No hace falta tocar nada más en este archivo. -->
+    <img class="logo" id="logoImg" src="assets/melillo-sound.svg" alt="Melillo Sound">
+    <span class="brand-sep" aria-hidden="true"></span>
+    <span class="brand-txt">
+      <span class="app-name">Entra<b>En</b>Pauta</span>
+      <span class="app-tag">Predictor de duración para guiones publicitarios</span>
+    </span>
+  </div>
+  <span class="topbar-sp"></span>
+  <button type="button" id="temaBtn" class="icon-btn" aria-label="Cambiar tema">
+    <span id="temaIco" aria-hidden="true">🌙</span><span id="temaTxt">Oscuro</span>
+  </button>
+</header>
+
+<main>
+
+  <!-- ============ 1. CONFIGURACIÓN ============ -->
+  <section class="card">
+    <div class="card-h"><h2>Configuración de la pauta</h2></div>
+    <div class="card-b">
+      <div class="cfg-grid">
+
+        <div class="campo">
+          <label for="estilo">Estilo de locución base</label>
+          <select id="estilo"></select>
+        </div>
+
+        <div class="campo">
+          <span class="sub-lab" id="lab-obj">Tiempo objetivo</span>
+          <div class="rapidos" role="group" aria-labelledby="lab-obj">
+            <button type="button" class="chip" data-seg="60">1 minuto</button>
+            <button type="button" class="chip" data-seg="30">30 seg</button>
+            <button type="button" class="chip" data-seg="20">20 seg</button>
+            <button type="button" class="chip" data-seg="15">15 seg</button>
+          </div>
+          <div class="tiempo-inputs">
+            <div class="campo">
+              <label for="objMin">Minutos</label>
+              <input type="number" id="objMin" min="0" max="59" step="1" value="0" inputmode="numeric">
+            </div>
+            <span class="dosp" aria-hidden="true">:</span>
+            <div class="campo">
+              <label for="objSeg">Segundos</label>
+              <input type="number" id="objSeg" min="0" max="59" step="1" value="30" inputmode="numeric">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. FICHA DEL PROYECTO ============ -->
+  <section class="card">
+    <div class="card-h"><h2>Ficha del proyecto</h2></div>
+    <div class="card-b">
+      <div class="fila">
+        <div class="campo">
+          <label for="fTitulo">Título</label>
+          <input type="text" id="fTitulo" placeholder="Escribe el nombre de tu pauta. (Ej: Día de las Madres 2026)">
+        </div>
+        <div class="campo">
+          <label for="fMarca">Marca</label>
+          <input type="text" id="fMarca" placeholder="Ej: Toyota">
+        </div>
+      </div>
+      <div class="fila">
+        <div class="campo">
+          <label for="fVersion">Versión</label>
+          <input type="text" id="fVersion" placeholder="Ej: Comercial TV 20s V1">
+        </div>
+        <div class="campo">
+          <label for="fAgencia">Agencia (opcional)</label>
+          <input type="text" id="fAgencia" placeholder="Escribe el nombre de la agencia o creativo responsable">
+        </div>
+      </div>
+      <div class="campo">
+        <label for="fDireccion">Dirección creativa (opcional)</label>
+        <textarea id="fDireccion" class="chico" placeholder="Escribe indicaciones más específicas."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <p class="eyebrow">Estructura del comercial</p>
+
+  <!-- ============ 2. AUDIOLOGO ============ -->
+  <section class="card modulo" id="mod-audiologo">
+    <div class="card-h">
+      <span class="mod-punto" style="background:var(--rosa)"></span>
+      <h2>AudioLogo</h2>
+      <span class="mod-lim" id="lim-audiologo">Mi pauta tiene un audiologo</span>
+      <label class="sw"><input type="checkbox" id="tgl-audiologo" checked aria-label="Activar AudioLogo"><span></span></label>
+    </div>
+    <div class="card-b">
+      <div class="fila">
+        <div class="campo">
+          <label for="alDur">Duración del AudioLogo (segundos)</label>
+          <input type="number" id="alDur" min="0" max="60" step="0.5" value="3" inputmode="decimal">
+        </div>
+        <div class="campo">
+          <label for="alPos">Ubicación en el comercial</label>
+          <select id="alPos">
+            <option value="inicio">Al principio</option>
+            <option value="final" selected>Al final</option>
+          </select>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="alVo">VoiceOver sobre el AudioLogo (opcional)</label>
+        <textarea id="alVo" class="chico" placeholder="Ej: Toyota. Vayamos juntos"></textarea>
+      </div>
+      <div class="mod-foot">
+        <span class="metrica"><b class="num" id="alVoTiempo">0.0s</b> de VO</span>
+        <span class="metrica">ocupa <b class="num" id="alTotal">3.0s</b> de la pauta</span>
+      </div>
+      <div class="alertas" id="alertas-audiologo"></div>
+    </div>
+  </section>
+
+  <!-- ============ 3. COPY CREATIVO ============ -->
+  <section class="card modulo" id="mod-creativo">
+    <div class="card-h">
+      <span class="mod-punto" style="background:var(--teal)"></span>
+      <h2>Copy Creativo</h2>
+      <span class="mod-lim">recomendado ≤ 20s</span>
+      <label class="sw"><input type="checkbox" id="tgl-creativo" checked aria-label="Activar Copy Creativo"><span></span></label>
+    </div>
+    <div class="card-b">
+      <div class="campo" style="margin-bottom:14px">
+        <label for="estiloCreativo">Estilo de locución de esta sección</label>
+        <select id="estiloCreativo"></select>
+      </div>
+      <div class="campo">
+        <label for="txCreativo">Texto principal del comercial</label>
+        <textarea id="txCreativo" placeholder="Pega aquí únicamente los diálogos, la narrativa o el desarrollo creativo. Para mayor precisión en el tiempo, separa el cierre de marca y los legales en las casillas inferiores."></textarea>
+      </div>
+      <div class="mod-foot">
+        <span class="metrica" id="met-creativo"><b class="num" id="tCreativo">0.0s</b> estimados</span>
+        <span class="metrica"><b class="num" id="pCreativo">0.0s</b> en pausas</span>
+      </div>
+      <div class="alertas" id="alertas-creativo"></div>
+    </div>
+  </section>
+
+  <!-- ============ 4. COPY OFERTA ============ -->
+  <section class="card modulo" id="mod-oferta">
+    <div class="card-h">
+      <span class="mod-punto" style="background:var(--ambar)"></span>
+      <h2>Copy Oferta / Institucional</h2>
+      <span class="mod-lim">recomendado ≤ 8s</span>
+      <label class="sw"><input type="checkbox" id="tgl-oferta" checked aria-label="Activar Copy Oferta / Institucional"><span></span></label>
+    </div>
+    <div class="card-b">
+      <div class="campo" style="margin-bottom:14px">
+        <label for="estiloOferta">Estilo de locución de esta sección</label>
+        <select id="estiloOferta"></select>
+      </div>
+      <div class="campo">
+        <label for="txOferta">Cierre de marca, CTA o promoción</label>
+        <textarea id="txOferta" placeholder="Pega aquí el cierre de marca, el llamado a la acción o la promoción. Usualmente es el copy que leerá la voz de la marca. Selecciona el estilo de locución para más precisión. El ritmo de lectura en esta sección suele ser distinto al creativo."></textarea>
+      </div>
+      <div class="mod-foot">
+        <span class="metrica" id="met-oferta"><b class="num" id="tOferta">0.0s</b> estimados</span>
+        <span class="metrica"><b class="num" id="pOferta">0.0s</b> en pausas</span>
+      </div>
+      <div class="alertas" id="alertas-oferta"></div>
+    </div>
+  </section>
+
+  <!-- ============ 5. COPY LEGAL ============ -->
+  <section class="card modulo off" id="mod-legal">
+    <div class="card-h">
+      <span class="mod-punto" style="background:var(--purpura)"></span>
+      <h2>Copy Legal</h2>
+      <span class="mod-lim">recomendado ≤ 6s</span>
+      <label class="sw"><input type="checkbox" id="tgl-legal" aria-label="Activar Copy Legal"><span></span></label>
+    </div>
+    <div class="card-b">
+      <div class="campo" style="margin-bottom:14px">
+        <label for="legalVel">Velocidad de lectura del legal</label>
+        <select id="legalVel">
+          <option value="normal" selected>Normal — mismo ritmo que el guion</option>
+          <option value="rapido">Rápido — 1.25× más veloz (Acelerado en Audio Post)</option>
+          <option value="muyrapido">Muy Rápido — 1.5× más veloz (Muy acelerado en Audio Post)</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="txLegal">Términos y condiciones obligatorios</label>
+        <textarea id="txLegal" class="chico" placeholder="Ej: Aplican términos y condiciones. Consulta vigencia en nuestro sitio web."></textarea>
+      </div>
+      <div class="mod-foot">
+        <span class="metrica" id="met-legal"><b class="num" id="tLegal">0.0s</b> estimados</span>
+        <span class="metrica">a ritmo <b id="vLegal">normal</b></span>
+      </div>
+      <div class="alertas" id="alertas-legal"></div>
+    </div>
+  </section>
+
+  <div class="acciones">
+    <button type="button" class="btn btn-pri" id="generarBtn">📄 Generar Guion Final</button>
+  </div>
+
+</main>
+
+<!-- ============ 6. FOOTER CTA ============ -->
+<div class="cta-wrap">
+  <section class="cta">
+    <p class="kicker">Melillo Sound</p>
+    <h2>Soluciones hechas a la medida para agencias y marcas.</h2>
+    <p>Producción de audio publicitario, estrategias de branding sonoro, música original y más. Conecta con nosotros y llevemos tu guion al aire.</p>
+    <div class="cta-btns">
+      <a class="cta-a" id="ctaMail" href="#">✉️ Escríbenos</a>
+      <a class="cta-b" id="ctaWa" href="#" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+    </div>
+  </section>
+</div>
+<p class="creditos">
+  EntraEnPauta · Modelo predictivo de duración de locución calibrado para español de Latinoamérica.<br>
+  Las duraciones son una estimación: la interpretación final del locutor puede variar.<br>
+  <span class="beta">
+    <b id="betaVer">beta</b> · ¿algo no cuadra?
+    <a id="feedbackLink" href="#">Cuéntanos</a>
+  </span>
+</p>
+
+<!-- ============ 7. DOCK: BARRA + DIAGNÓSTICO ============ -->
+<div class="dock">
+  <div class="dock-in">
+    <div class="dock-top">
+      <span class="lab">Ocupación de la pauta</span>
+      <span class="total num"><b id="dTotal">0.0s</b> <span class="de">de <span id="dObjetivo">30.0s</span></span></span>
+      <span class="pct num" id="dPct">0%</span>
+    </div>
+    <div class="barra" id="barra" role="img" aria-label="Ocupación de la pauta por bloque">
+      <span class="marca" id="marca"></span>
+    </div>
+    <div class="leyenda" id="leyenda"></div>
+    <div class="diag" id="diag" aria-live="polite">
+      <span class="ico" id="diagIco">⚪</span>
+      <span id="diagTxt">Escribe tu guion para ver el diagnóstico.</span>
+      <button type="button" class="btn btn-pri btn-gen" id="generarBtn2">📄 Generar Guion Final</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 8. MODAL GUION FINAL ============ -->
+<dialog id="modal">
+  <div class="dlg-h">
+    <h2>Guion final para locución</h2>
+    <button type="button" class="icon-btn" id="cerrarX" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="dlg-b papel">
+    <article class="hoja" id="hoja">
+      <h1 id="hTitulo">Guion sin título</h1>
+      <div class="hoja-meta" id="hMeta"></div>
+      <p class="hoja-dir" id="hDir" hidden></p>
+      <hr class="hoja-regla">
+
+      <h2>Guion final</h2>
+      <div class="hoja-guion" id="hGuion"></div>
+
+      <h2>Resumen técnico</h2>
+      <div class="lt" id="hLinea"></div>
+      <p class="hoja-estilos" id="hEstilos" hidden></p>
+      <p class="hoja-total" id="hTotal"></p>
+    </article>
+    <textarea id="guionTxt" spellcheck="false" aria-hidden="true" tabindex="-1"></textarea>
+  </div>
+  <div class="dlg-f">
+    <span class="ok" id="copiado">✓ Copiado al portapapeles</span>
+    <button type="button" class="btn btn-sec" id="cerrarBtn">Cerrar</button>
+    <button type="button" class="btn btn-sec" id="imprimirBtn">🖨 Imprimir / Guardar PDF</button>
+    <button type="button" class="btn btn-pri" id="copiarBtn">📋 Copiar texto</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+"use strict";
+
+/* =====================================================================
+   CONSTANTES DE CALIBRACIÓN
+   Todo lo que se puede recalibrar vive aquí arriba, en un solo lugar.
+   ===================================================================== */
+
+/* Build visible en el pie: los reportes de la beta dicen de qué versión hablan. */
+const VERSION = "1.0.0-beta.1";
+
+/* Datos de contacto del CTA del footer. */
+const CONTACTO = {
+  email:    "stefano@melillosound.com",
+  whatsapp: "584122893439"   // formato wa.me: sin "+", sin espacios ni guiones
+};
+
+/* Estilos de locución y su ritmo en sílabas por minuto. */
+const ESTILOS = [
+  { id:"promocional",   label:"Promocional / Alta Energía",   spm:415 },
+  { id:"natural",       label:"Natural / Conversacional",     spm:355 },
+  { id:"amigable",      label:"Amigable / Profesional",       spm:335 },
+  { id:"institucional", label:"Institucional / Voz de Marca", spm:310 },
+  { id:"emotivo",       label:"Emotivo",                      spm:290 },
+  { id:"maternal",      label:"Maternal / Paternal",          spm:265 },
+  { id:"sensual",       label:"Sensual",                      spm:240 },
+  { id:"trailer",       label:"Tráiler de Película",          spm:220 }
+];
+
+/* Segundos extra por cada signo de puntuación (pausa para respirar). */
+const PAUSAS = {
+  coma:    0.5,   /* ,           */
+  punto:   1.0,   /* .           */
+  medio:   0.8,   /* ; y :       */
+  elipsis: 1.5,   /* ...         */
+  cierre:  1.0    /* ? y ! de cierre. Ponlo en 0 para ceñirte a la fórmula base. */
+};
+
+/* Multiplicador de velocidad del Copy Legal: acelera sílabas Y pausas. */
+const VELOCIDAD_LEGAL = { normal:1, rapido:1.25, muyrapido:1.5 };
+const NOMBRE_VELOCIDAD = { normal:"Normal", rapido:"Rápido", muyrapido:"Muy Rápido" };
+/* Lo que el estudio tiene que hacer en post con cada velocidad. */
+const NOTA_VELOCIDAD = { normal:"", rapido:" (Acelerado en Audio Post)",
+                         muyrapido:" (Muy acelerado en Audio Post)" };
+
+/* Límites de densidad recomendados por bloque (segundos). */
+const LIMITES = { creativo:20, oferta:8, legal:6 };
+
+const COLORES = {
+  audiologo:"var(--rosa)", creativo:"var(--teal)",
+  oferta:"var(--ambar)",   legal:"var(--purpura)"
+};
+const NOMBRES = {
+  audiologo:"AudioLogo", creativo:"Copy Creativo",
+  oferta:"Copy Oferta / Institucional", legal:"Copy Legal"
+};
+/* Nombres breves para la leyenda del dock, que lleva cinco entradas en una
+   franja estrecha, y para la línea de estilos de la hoja impresa. */
+const NOMBRES_CORTOS = {
+  audiologo:"AudioLogo", creativo:"Creativo",
+  oferta:"Oferta", legal:"Legal"
+};
+
+const AVISO_CIFRAS = "Los números tardan más en leerse de lo que la fórmula sugiere " +
+  "(ej: «1999» es 1 palabra pero 8 sílabas). Escríbelos en letras para medirlos con precisión.";
+
+const CLAVE_GUARDADO = "entraenpauta.v1";
+
+/* Campos de la ficha, en el orden en que encabezan la hoja impresa.
+   `opcional` decide si la línea se omite cuando el campo viene vacío. */
+const FICHA_CAMPOS = [
+  { id:"titulo",    input:"fTitulo",    etiqueta:"Título",              opcional:false },
+  { id:"marca",     input:"fMarca",     etiqueta:"Marca",               opcional:false },
+  { id:"version",   input:"fVersion",   etiqueta:"Versión",             opcional:false },
+  { id:"agencia",   input:"fAgencia",   etiqueta:"Agencia",             opcional:true  },
+  { id:"direccion", input:"fDireccion", etiqueta:"Dirección creativa", opcional:true  }
+];
+
+/* =====================================================================
+   MOTOR DE CÁLCULO  (funciones puras)
+   ===================================================================== */
+
+/* Paso A — Sílabas: cada grupo de vocales equivale a una sílaba en español. */
+function contarSilabas(txt){
+  if (!txt) return 0;
+  return (txt.match(/[aeiouáéíóúü]+/gi) || []).length;
+}
+
+/* Paso C — Tiempo de pausas por puntuación.
+   Los puntos suspensivos se consumen ANTES de contar puntos simples:
+   de lo contrario "..." sumaría 3.0s (tres puntos) en vez de 1.5s. */
+function tiempoPuntuacion(txt){
+  if (!txt) return 0;
+  let t = txt.replace(/…/g, "...");
+  const elipsis = (t.match(/\.{3,}/g) || []).length;
+  t = t.replace(/\.{3,}/g, "␟");        // marcador que no es un punto
+  const puntos = (t.match(/\./g)   || []).length;
+  const comas  = (t.match(/,/g)    || []).length;
+  const medios = (t.match(/[;:]/g) || []).length;
+  const cierre = (t.match(/[?!]/g) || []).length;   // ¿ y ¡ de apertura no suman
+  return comas*PAUSAS.coma + puntos*PAUSAS.punto + medios*PAUSAS.medio
+       + elipsis*PAUSAS.elipsis + cierre*PAUSAS.cierre;
+}
+
+/* Paso B + C — Tiempo total de un bloque de texto.
+   factor > 1 acelera la lectura (usado por el Copy Legal). */
+function tiempoBloque(txt, spm, factor){
+  factor = factor || 1;
+  const silabas = contarSilabas(txt);
+  const base    = spm > 0 ? (silabas / (spm * factor)) * 60 : 0;
+  const pausas  = tiempoPuntuacion(txt) / factor;
+  return { silabas:silabas, base:base, pausas:pausas, total:base + pausas };
+}
+
+/* Detecta cifras o una "X" usada como "por" (2X1), sin marcar "éxito" ni "examen". */
+const RE_DIGITO = /[0-9]/;
+const RE_EQUIS  = /(?:^|[^a-záéíóúüñ])[xX](?:[^a-záéíóúüñ]|$)|\d\s*[xX]\s*\d/i;
+function tieneCifras(txt){
+  if (!txt) return false;
+  return RE_DIGITO.test(txt) || RE_EQUIS.test(txt);
+}
+
+function veredicto(consumido, objetivo){
+  if (objetivo <= 0) return { clase:"", ico:"⚪", txt:"Define un tiempo objetivo para ver el diagnóstico." };
+  if (consumido <= 0) return { clase:"", ico:"⚪", txt:"Escribe tu guion para ver el diagnóstico." };
+  const pct = consumido / objetivo * 100;
+  if (pct > 100) return { clase:"rojo", ico:"🔴",
+    txt:"TU TEXTO EXCEDE LA PAUTA. Sobran " + s1(consumido - objetivo) + " segundos." };
+  if (pct > 80)  return { clase:"naranja",  ico:"🟠", txt:"TU TEXTO ESTÁ JUSTO Y PODRÍA ESTAR APRETADO EN LA PAUTA." };
+  if (pct >= 50) return { clase:"verde",    ico:"🟢", txt:"TU TEXTO FUNCIONA DENTRO DE LA PAUTA." };
+  return           { clase:"amarillo", ico:"🟡", txt:"PODRÍA SOBRAR ESPACIO DENTRO DE ESTA PAUTA." };
+}
+
+const s1  = function(n){ return (Math.round(n * 10) / 10).toFixed(1); };
+const seg = function(n){ return s1(n) + "s"; };
+
+/* Expuesto para las pruebas automatizadas (tests/verify.mjs). */
+window.EEP = { contarSilabas, tiempoPuntuacion, tiempoBloque, tieneCifras,
+               veredicto, ESTILOS, PAUSAS, VELOCIDAD_LEGAL, LIMITES };
+
+/* =====================================================================
+   ESTADO
+   ===================================================================== */
+
+const state = {
+  estilo: "natural",
+  ficha: { titulo:"", marca:"", version:"", agencia:"", direccion:"" },
+  objetivo: { min:0, seg:30 },
+  audiologo: { on:true,  duracion:3, posicion:"final", vo:"" },
+  creativo:  { on:true,  texto:"", estilo:"base" },
+  oferta:    { on:true,  texto:"", estilo:"base" },
+  legal:     { on:false, texto:"", velocidad:"normal" },
+  tema: "auto"
+};
+
+function guardar(){
+  try { localStorage.setItem(CLAVE_GUARDADO, JSON.stringify(state)); } catch(e){ /* modo privado */ }
+}
+function restaurar(){
+  let crudo = null;
+  try { crudo = localStorage.getItem(CLAVE_GUARDADO); } catch(e){ return; }
+  if (!crudo) return;
+  try {
+    const g = JSON.parse(crudo);
+    if (!g || typeof g !== "object") return;
+    if (ESTILOS.some(function(e){ return e.id === g.estilo; })) state.estilo = g.estilo;
+    if (g.objetivo) {
+      state.objetivo.min = clamp(g.objetivo.min, 0, 59);
+      state.objetivo.seg = clamp(g.objetivo.seg, 0, 59);
+    }
+    ["audiologo","creativo","oferta","legal"].forEach(function(k){
+      if (g[k]) Object.assign(state[k], g[k]);
+    });
+    if (VELOCIDAD_LEGAL[state.legal.velocidad] === undefined) state.legal.velocidad = "normal";
+    ["creativo","oferta"].forEach(function(k){
+      if (state[k].estilo !== "base" && !ESTILOS.some(function(e){ return e.id === state[k].estilo; }))
+        state[k].estilo = "base";
+    });
+    if (state.audiologo.posicion !== "inicio") state.audiologo.posicion = "final";
+    state.audiologo.duracion = clamp(state.audiologo.duracion, 0, 60);
+    if (g.ficha) FICHA_CAMPOS.forEach(function(c){
+      if (typeof g.ficha[c.id] === "string") state.ficha[c.id] = g.ficha[c.id].slice(0, 400);
+    });
+    if (g.tema === "dark" || g.tema === "light" || g.tema === "auto") state.tema = g.tema;
+  } catch(e){ /* guardado corrupto: se ignora */ }
+}
+function clamp(v, lo, hi){
+  const n = Number(v);
+  if (!isFinite(n)) return lo;
+  return Math.min(hi, Math.max(lo, n));
+}
+
+/* =====================================================================
+   CÁLCULO GLOBAL
+   ===================================================================== */
+
+function estiloBase(){
+  return ESTILOS.find(function(x){ return x.id === state.estilo; }) || ESTILOS[1];
+}
+
+/* Estilo efectivo de una sección: el suyo si lo fijaron, si no hereda el base.
+   El VO del AudioLogo y el Copy Legal usan siempre el base. */
+function estiloDe(clave){
+  const propio = state[clave] && state[clave].estilo;
+  if (propio && propio !== "base"){
+    const e = ESTILOS.find(function(x){ return x.id === propio; });
+    if (e) return e;
+  }
+  return estiloBase();
+}
+
+function spmActual(){ return estiloBase().spm; }
+
+/* Orden cronológico real del comercial. */
+function orden(){
+  const medio = ["creativo","oferta","legal"];
+  return state.audiologo.posicion === "inicio"
+    ? ["audiologo"].concat(medio)
+    : medio.concat(["audiologo"]);
+}
+
+function calcular(){
+  const spm = spmActual();
+  const objetivo = state.objetivo.min * 60 + state.objetivo.seg;
+  const factorLegal = VELOCIDAD_LEGAL[state.legal.velocidad] || 1;
+  const estCreativo = estiloDe("creativo"), estOferta = estiloDe("oferta");
+
+  const vo = tiempoBloque(state.audiologo.vo, spm, 1);
+  const b = {
+    /* El AudioLogo aporta su duración musical fija: el VO va superpuesto encima. */
+    audiologo:{ on:state.audiologo.on, total:state.audiologo.on ? state.audiologo.duracion : 0,
+                vo:vo, silabas:vo.silabas, texto:state.audiologo.vo },
+    creativo: Object.assign({ on:state.creativo.on, texto:state.creativo.texto, estilo:estCreativo },
+                            tiempoBloque(state.creativo.texto, estCreativo.spm)),
+    oferta:   Object.assign({ on:state.oferta.on, texto:state.oferta.texto, estilo:estOferta },
+                            tiempoBloque(state.oferta.texto, estOferta.spm)),
+    legal:    Object.assign({ on:state.legal.on, texto:state.legal.texto, factor:factorLegal },
+                            tiempoBloque(state.legal.texto, spm, factorLegal))
+  };
+  ["creativo","oferta","legal"].forEach(function(k){ if (!b[k].on) b[k].total = 0; });
+
+  let consumido = 0;
+  orden().forEach(function(k){ consumido += b[k].total; });
+
+  return { spm:spm, objetivo:objetivo, bloques:b, consumido:consumido,
+           pct: objetivo > 0 ? consumido / objetivo * 100 : 0 };
+}
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+
+const $ = function(id){ return document.getElementById(id); };
+
+function alerta(cont, tipo, ico, texto){
+  const d = document.createElement("div");
+  d.className = "alerta " + tipo;
+  d.innerHTML = '<i aria-hidden="true"></i><span></span>';
+  d.firstChild.textContent = ico;
+  d.lastChild.textContent  = texto;
+  cont.appendChild(d);
+}
+
+function pintarAlertas(clave, bloque, excede, mensajeExceso){
+  const cont = $("alertas-" + clave);
+  cont.innerHTML = "";
+  const card = $("mod-" + clave);
+  card.classList.toggle("densidad", !!excede);
+  if (excede) alerta(cont, "roja", "⛔", mensajeExceso);
+  if (tieneCifras(bloque.texto)) alerta(cont, "ambar", "⚠️", AVISO_CIFRAS);
+}
+
+function render(){
+  const r = calcular();
+  const b = r.bloques;
+
+  $("lim-audiologo").textContent = state.audiologo.on
+    ? "Mi pauta tiene un audiologo" : "Mi pauta no tiene audiologo";
+  refrescarEstilos();
+
+  /* --- AudioLogo --- */
+  $("alVoTiempo").textContent = seg(b.audiologo.vo.total);
+  $("alTotal").textContent    = seg(b.audiologo.total);
+  const voNoCabe = state.audiologo.on && b.audiologo.vo.total > state.audiologo.duracion;
+  pintarAlertas("audiologo", b.audiologo, voNoCabe,
+    "El VoiceOver dura " + seg(b.audiologo.vo.total) + " y el AudioLogo solo " +
+    seg(state.audiologo.duracion) + ". No cabe encima: acorta el texto o alarga la música.");
+
+  /* --- Bloques de texto --- */
+  [["creativo","tCreativo","pCreativo"],
+   ["oferta",  "tOferta",  "pOferta"]].forEach(function(f){
+    const k = f[0], bl = b[k];
+    $(f[1]).textContent = seg(bl.total);
+    $(f[2]).textContent = seg(bl.pausas);
+    const excede = bl.on && bl.total > LIMITES[k];
+    $("met-" + k).classList.toggle("alerta", !!excede);
+    pintarAlertas(k, bl, excede,
+      NOMBRES[k] + " ocupa " + seg(bl.total) + ", por encima de los " + LIMITES[k] +
+      "s recomendados. A este ritmo el texto se siente atropellado.");
+  });
+
+  /* --- Legal --- */
+  $("tLegal").textContent = seg(b.legal.total);
+  $("vLegal").textContent = NOMBRE_VELOCIDAD[state.legal.velocidad].toLowerCase();
+  const legalExcede = b.legal.on && b.legal.total > LIMITES.legal;
+  $("met-legal").classList.toggle("alerta", !!legalExcede);
+  pintarAlertas("legal", b.legal, legalExcede,
+    "El legal ocupa " + seg(b.legal.total) + ", por encima de los " + LIMITES.legal +
+    "s recomendados. Acelera la velocidad o recorta términos.");
+
+  /* --- Barra de progreso --- */
+  const barra = $("barra");
+  Array.prototype.slice.call(barra.querySelectorAll(".seg")).forEach(function(s){ s.remove(); });
+  const denom = Math.max(r.objetivo, r.consumido) || 1;
+  let acc = 0;
+  orden().forEach(function(k){
+    const t = b[k].total;
+    if (t <= 0) return;
+    const ini = acc, fin = acc + t;
+    /* Cada bloque se parte: lo que cae dentro de la pauta va con su color,
+       lo que la sobrepasa se pinta de rojo. Así se ve QUÉ bloque desbordó. */
+    const dentro = Math.max(0, Math.min(fin, r.objetivo) - ini);
+    const fuera  = Math.max(0, fin - Math.max(ini, r.objetivo));
+    if (dentro > 0) barra.appendChild(segmento(dentro / denom * 100, COLORES[k],
+      NOMBRES[k] + ": " + seg(t)));
+    if (fuera > 0)  barra.appendChild(segmento(fuera / denom * 100, null,
+      "Excedente de " + NOMBRES[k] + ": " + seg(fuera)));
+    acc = fin;
+  });
+  const marca = $("marca");
+  const hayExceso = r.consumido > r.objetivo && r.objetivo > 0;
+  marca.style.display = hayExceso ? "block" : "none";
+  marca.style.left = (r.objetivo / denom * 100) + "%";
+
+  /* --- Leyenda --- */
+  const ley = $("leyenda");
+  ley.innerHTML = "";
+  orden().forEach(function(k){
+    if (b[k].total <= 0) return;
+    const s = document.createElement("span");
+    s.innerHTML = '<i></i><span></span> <b></b>';
+    s.firstChild.style.background = COLORES[k];
+    s.children[1].textContent = NOMBRES_CORTOS[k];
+    s.lastChild.textContent = seg(b[k].total);
+    ley.appendChild(s);
+  });
+  if (hayExceso){
+    const s = document.createElement("span");
+    s.innerHTML = '<i style="background:var(--rojo)"></i><span>Excedente</span> <b></b>';
+    s.lastChild.textContent = seg(r.consumido - r.objetivo);
+    ley.appendChild(s);
+  }
+
+  /* --- Totales y diagnóstico --- */
+  $("dTotal").textContent    = seg(r.consumido);
+  $("dObjetivo").textContent = seg(r.objetivo);
+  $("dPct").textContent      = Math.round(r.pct) + "%";
+  const v = veredicto(r.consumido, r.objetivo);
+  $("diag").className = "diag " + v.clase;
+  $("diagIco").textContent = v.ico;
+  $("diagTxt").textContent = v.txt;
+
+  guardar();
+  return r;
+}
+
+function segmento(pct, color, titulo){
+  const d = document.createElement("span");
+  d.className = "seg" + (color ? "" : " excedente");
+  d.style.width = pct + "%";
+  if (color) d.style.background = color;
+  d.title = titulo;
+  return d;
+}
+
+/* =====================================================================
+   GUION FINAL
+   ===================================================================== */
+
+/* Reúne todo lo que necesita la hoja: textos a locutar, tramos de la línea del
+   tiempo y estilos por sección, ya en orden cronológico. */
+function datosGuion(){
+  const r = calcular(), b = r.bloques;
+  const partes = [], tramos = [], estilos = [];
+
+  orden().forEach(function(k){
+    if (k === "audiologo"){
+      if (!b.audiologo.on) return;
+      if (state.audiologo.vo.trim()) partes.push(state.audiologo.vo.trim());
+      if (b.audiologo.total > 0) tramos.push({ nombre:NOMBRES.audiologo, seg:b.audiologo.total });
+      return;
+    }
+    if (!b[k].on || !b[k].texto.trim()) return;
+    partes.push(b[k].texto.trim());
+    if (b[k].total > 0) tramos.push({ nombre:NOMBRES[k], seg:b[k].total });
+    estilos.push(NOMBRES_CORTOS[k] + ": " + (k === "legal"
+      ? NOMBRE_VELOCIDAD[state.legal.velocidad] + NOTA_VELOCIDAD[state.legal.velocidad]
+      : b[k].estilo.label));
+  });
+
+  const pct = r.objetivo > 0 ? " (" + s1(r.pct) + " %)" : "";
+  const excede = r.objetivo > 0 && r.consumido > r.objetivo;
+  return {
+    partes:partes, tramos:tramos, estilos:estilos,
+    objetivo:r.objetivo, consumido:r.consumido, excede:excede,
+    total: "TOTAL: " + seg(r.consumido) + " de " + seg(r.objetivo) + pct,
+    exceso: excede ? "excede por " + seg(r.consumido - r.objetivo) : ""
+  };
+}
+
+/* Pinta la hoja A4. Se llama con el modal ya abierto porque el marcador de la
+   pauta se posiciona midiendo el DOM maquetado. */
+function pintarHoja(){
+  const d = datosGuion();
+  hojaActual = d;
+
+  $("hTitulo").textContent = state.ficha.titulo.trim() || "Guion sin título";
+
+  const meta = $("hMeta");
+  meta.innerHTML = "";
+  FICHA_CAMPOS.forEach(function(c){
+    if (c.id === "titulo" || c.id === "direccion") return;
+    const valor = state.ficha[c.id].trim();
+    if (!valor && c.opcional) return;          /* Agencia vacía no ensucia la hoja */
+    const fila = document.createElement("div");
+    fila.innerHTML = "<span></span> <b></b>";
+    fila.firstChild.textContent = c.etiqueta + ":";
+    fila.lastChild.textContent = valor || "\u2014";
+    meta.appendChild(fila);
+  });
+
+  const dir = state.ficha.direccion.trim();
+  $("hDir").hidden = !dir;
+  if (dir){
+    $("hDir").innerHTML = "<b></b> <span></span>";
+    $("hDir").firstChild.textContent = "Dirección creativa:";
+    $("hDir").lastChild.textContent = dir;
+  }
+
+  const guion = $("hGuion");
+  guion.innerHTML = "";
+  if (!d.partes.length){
+    const p0 = document.createElement("p");
+    p0.textContent = "(Sin texto para locutar.)";
+    guion.appendChild(p0);
+  } else d.partes.forEach(function(t){
+    const p1 = document.createElement("p");
+    p1.textContent = t;                        /* pre-wrap conserva los saltos tal cual */
+    guion.appendChild(p1);
+  });
+
+  const lt = $("hLinea");
+  lt.innerHTML = "";
+  d.tramos.forEach(function(t){
+    const celda = document.createElement("div");
+    celda.className = "lt-celda";
+    celda.style.flexGrow = String(t.seg);      /* el ancho ES la duración */
+    celda.innerHTML = '<div class="lt-tramo"></div><div class="lt-nombre"></div><div class="lt-seg"></div>';
+    celda.children[1].textContent = t.nombre;
+    celda.children[2].textContent = seg(t.seg);
+    lt.appendChild(celda);
+  });
+  if (d.excede) marcarPauta(lt, d);
+
+  $("hEstilos").hidden = !d.estilos.length;
+  $("hEstilos").textContent = d.estilos.join(" · ");
+
+  $("hTotal").innerHTML = "<span></span>";
+  $("hTotal").firstChild.textContent = d.total;
+  if (d.excede){
+    const av = document.createElement("em");
+    av.textContent = " \u2014 " + d.exceso;
+    $("hTotal").appendChild(av);
+  }
+
+  $("guionTxt").value = guionTextoPlano(d);
+}
+
+/* Marca dónde termina la pauta cuando el guion se pasa. La posición se mide del
+   DOM ya maquetado: el min-width de las celdas rompe la correspondencia lineal
+   entre segundos y píxeles, así que calcularla con pura regla de tres fallaría. */
+function marcarPauta(lt, d){
+  const marca = document.createElement("span");
+  marca.className = "lt-marca";
+  marca.innerHTML = "<span></span>";
+  marca.firstChild.textContent = "PAUTA " + seg(d.objetivo);
+  lt.appendChild(marca);
+
+  const celdas = lt.querySelectorAll(".lt-celda");
+  let acumulado = 0, x = null;
+  for (let i = 0; i < celdas.length; i++){
+    const t = d.tramos[i];
+    if (acumulado + t.seg >= d.objetivo){
+      x = celdas[i].offsetLeft + celdas[i].offsetWidth * ((d.objetivo - acumulado) / t.seg);
+      break;
+    }
+    acumulado += t.seg;
+  }
+  marca.style.left = (x === null ? lt.offsetWidth : x) + "px";
+}
+
+/* Equivalente en texto de la hoja, para el portapapeles. */
+function guionTextoPlano(d){
+  const L = [state.ficha.titulo.trim() || "Guion sin título"];
+  FICHA_CAMPOS.forEach(function(c){
+    if (c.id === "titulo") return;
+    const valor = state.ficha[c.id].trim();
+    if (!valor && c.opcional) return;
+    L.push(c.etiqueta + ": " + (valor || "\u2014"));
+  });
+
+  L.push("", "GUION FINAL", "");
+  L.push(d.partes.length ? d.partes.join("\n\n") : "(Sin texto para locutar.)");
+
+  L.push("", "RESUMEN TÉCNICO", "");
+  d.tramos.forEach(function(t){ L.push(t.nombre + " \u2014 " + seg(t.seg)); });
+  if (d.estilos.length) L.push("", d.estilos.join(" · "));
+  L.push("", d.total + (d.excede ? " \u2014 " + d.exceso : ""));
+  return L.join("\n") + "\n";
+}
+
+let hojaActual = null;
+
+function abrirModal(){
+  $("copiado").classList.remove("on");
+  const m = $("modal");
+  if (typeof m.showModal === "function") m.showModal(); else m.setAttribute("open","");
+  pintarHoja();                                /* con el modal ya visible: hay que medir */
+}
+
+function copiar(){
+  const ta = $("guionTxt");
+  const exito = function(){ $("copiado").classList.add("on"); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(exito, copiaManual);
+  } else copiaManual();
+  function copiaManual(){
+    ta.removeAttribute("aria-hidden");
+    ta.focus(); ta.select();
+    try { if (document.execCommand("copy")) exito(); } catch(e){ /* sin permiso */ }
+    ta.setAttribute("aria-hidden","true");
+  }
+}
+
+/* =====================================================================
+   TEMA
+   ===================================================================== */
+
+/* Cuando la app corre embebida (por ejemplo publicada como artifact), el anfitrión
+   estampa data-theme en <html>. Es un atributo distinto del data-tema propio de la
+   app, así que no chocan: si el usuario no ha elegido tema aquí, seguimos al host. */
+function temaDelAnfitrion(){
+  const t = document.documentElement.getAttribute("data-theme");
+  return (t === "dark" || t === "light") ? t : null;
+}
+
+function aplicarTema(){
+  const raiz = document.documentElement;
+  raiz.setAttribute("data-tema", state.tema);
+  const oscuro = state.tema === "dark" ||
+    (state.tema === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  $("temaIco").textContent = oscuro ? "☀️" : "🌙";
+  $("temaTxt").textContent = oscuro ? "Claro" : "Oscuro";
+  /* El wordmark de la marca es oscuro: sobre el tema oscuro hace falta la variante clara. */
+  $("logoImg").src = "assets/melillo-sound" + (oscuro ? "-dark" : "") + ".svg";
+}
+
+/* =====================================================================
+   ARRANQUE Y EVENTOS
+   ===================================================================== */
+
+restaurar();
+
+/* Select de estilos */
+/* El SPM es el razonamiento del modelo, no algo que el usuario necesite ver:
+   los selectores muestran solo el nombre del estilo. */
+function etiquetaEstilo(e){ return e.label; }
+
+const sel = $("estilo");
+ESTILOS.forEach(function(e){
+  const o = document.createElement("option");
+  o.value = e.id;
+  o.textContent = etiquetaEstilo(e);
+  sel.appendChild(o);
+});
+
+/* Cada sección locutable arranca con "Igual que el estilo base": así quien solo
+   quiere un ritmo para todo el comercial no tiene que tocar tres selectores. */
+["creativo","oferta"].forEach(function(k){
+  const s2 = $("estilo" + k.charAt(0).toUpperCase() + k.slice(1));
+  const heredar = document.createElement("option");
+  heredar.value = "base";
+  s2.appendChild(heredar);
+  ESTILOS.forEach(function(e){
+    const o = document.createElement("option");
+    o.value = e.id;
+    o.textContent = etiquetaEstilo(e);
+    s2.appendChild(o);
+  });
+  s2.value = state[k].estilo;
+});
+
+/* La etiqueta de la opción heredada nombra el estilo base vigente, así que se
+   reescribe cada vez que el base cambia. */
+function refrescarEstilos(){
+  const txt = "Igual que el estilo base (" + etiquetaEstilo(estiloBase()) + ")";
+  ["creativo","oferta"].forEach(function(k){
+    $("estilo" + k.charAt(0).toUpperCase() + k.slice(1)).options[0].textContent = txt;
+  });
+}
+
+/* Volcar el estado en los controles */
+sel.value = state.estilo;
+FICHA_CAMPOS.forEach(function(c){ $(c.input).value = state.ficha[c.id]; });
+$("objMin").value  = state.objetivo.min;
+$("objSeg").value  = state.objetivo.seg;
+$("alDur").value   = state.audiologo.duracion;
+$("alPos").value   = state.audiologo.posicion;
+$("alVo").value    = state.audiologo.vo;
+$("txCreativo").value = state.creativo.texto;
+$("txOferta").value   = state.oferta.texto;
+$("txLegal").value    = state.legal.texto;
+$("legalVel").value   = state.legal.velocidad;
+["audiologo","creativo","oferta","legal"].forEach(function(k){
+  $("tgl-" + k).checked = state[k].on;
+  $("mod-" + k).classList.toggle("off", !state[k].on);
+});
+
+/* Accesos rápidos de tiempo */
+function marcarChips(){
+  const total = state.objetivo.min * 60 + state.objetivo.seg;
+  Array.prototype.slice.call(document.querySelectorAll(".chip")).forEach(function(c){
+    c.setAttribute("aria-pressed", String(Number(c.dataset.seg) === total));
+  });
+}
+Array.prototype.slice.call(document.querySelectorAll(".chip")).forEach(function(c){
+  c.addEventListener("click", function(){
+    const t = Number(c.dataset.seg);
+    state.objetivo.min = Math.floor(t / 60);
+    state.objetivo.seg = t % 60;
+    $("objMin").value = state.objetivo.min;
+    $("objSeg").value = state.objetivo.seg;
+    marcarChips(); render();
+  });
+});
+
+/* Enlaces de estado ↔ controles */
+function on(id, evento, fn){ $(id).addEventListener(evento, function(){ fn(); render(); }); }
+
+FICHA_CAMPOS.forEach(function(c){
+  on(c.input, "input", function(){ state.ficha[c.id] = $(c.input).value; });
+});
+
+on("estilo","change", function(){ state.estilo = sel.value; });
+on("estiloCreativo","change", function(){ state.creativo.estilo = $("estiloCreativo").value; });
+on("estiloOferta","change",   function(){ state.oferta.estilo   = $("estiloOferta").value; });
+on("objMin","input",  function(){ state.objetivo.min = clamp($("objMin").value, 0, 59); marcarChips(); });
+on("objSeg","input",  function(){ state.objetivo.seg = clamp($("objSeg").value, 0, 59); marcarChips(); });
+on("alDur","input",   function(){ state.audiologo.duracion = clamp($("alDur").value, 0, 60); });
+on("alPos","change",  function(){ state.audiologo.posicion = $("alPos").value; });
+on("alVo","input",    function(){ state.audiologo.vo = $("alVo").value; });
+on("txCreativo","input", function(){ state.creativo.texto = $("txCreativo").value; });
+on("txOferta","input",   function(){ state.oferta.texto   = $("txOferta").value; });
+on("txLegal","input",    function(){ state.legal.texto    = $("txLegal").value; });
+on("legalVel","change",  function(){ state.legal.velocidad = $("legalVel").value; });
+
+["audiologo","creativo","oferta","legal"].forEach(function(k){
+  on("tgl-" + k, "change", function(){
+    state[k].on = $("tgl-" + k).checked;
+    $("mod-" + k).classList.toggle("off", !state[k].on);
+  });
+});
+
+/* Tema */
+$("temaBtn").addEventListener("click", function(){
+  const oscuroAhora = state.tema === "dark" ||
+    (state.tema === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  state.tema = oscuroAhora ? "light" : "dark";
+  aplicarTema(); guardar();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(){
+  if (state.tema === "auto") aplicarTema();
+});
+
+/* Modal */
+$("generarBtn").addEventListener("click", abrirModal);
+$("generarBtn2").addEventListener("click", abrirModal);
+$("copiarBtn").addEventListener("click", copiar);
+$("imprimirBtn").addEventListener("click", function(){ window.print(); });
+/* El marcador de la pauta está posicionado en píxeles: al cambiar el ancho
+   hay que volver a medir o queda señalando el punto equivocado. */
+addEventListener("resize", function(){ if ($("modal").open) pintarHoja(); });
+$("cerrarBtn").addEventListener("click", function(){ $("modal").close(); });
+$("cerrarX").addEventListener("click",   function(){ $("modal").close(); });
+
+/* CTA del footer, derivado de CONTACTO (los datos se escriben una sola vez). */
+$("ctaMail").href = "mailto:" + CONTACTO.email +
+  "?subject=" + encodeURIComponent("Proyecto de audio publicitario") +
+  "&body="    + encodeURIComponent("Hola Melillo Sound,\n\nMe gustaría cotizar un proyecto de audio.\n\n");
+$("ctaMail").textContent = "✉️ " + CONTACTO.email;
+$("betaVer").textContent = "beta " + VERSION;
+$("feedbackLink").href = "mailto:" + CONTACTO.email +
+  "?subject=" + encodeURIComponent("Feedback EntraEnPauta " + VERSION) +
+  "&body="    + encodeURIComponent(
+    "\n\n\u2014\nVersión: " + VERSION + "\nNavegador: " + navigator.userAgent + "\n");
+
+$("ctaWa").href = "https://wa.me/" + CONTACTO.whatsapp +
+  "?text=" + encodeURIComponent("Hola Melillo Sound, vengo de EntraEnPauta y quiero cotizar un proyecto.");
+
+/* El dock es de alto variable (la leyenda y el diagnóstico saltan de línea en
+   pantallas angostas), así que el hueco al pie del body se mide, no se adivina:
+   con un padding fijo el final del footer quedaba tapado. */
+const dock = document.querySelector(".dock");
+function ajustarHueco(){
+  document.body.style.paddingBottom = (dock.offsetHeight + 16) + "px";
+}
+if (typeof ResizeObserver === "function") new ResizeObserver(ajustarHueco).observe(dock);
+addEventListener("resize", ajustarHueco);
+
+if (state.tema === "auto" && temaDelAnfitrion()) state.tema = temaDelAnfitrion();
+new MutationObserver(function(){
+  const h = temaDelAnfitrion();
+  if (h && h !== state.tema) { state.tema = h; aplicarTema(); }
+}).observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+aplicarTema();
+marcarChips();
+render();
+ajustarHueco();
+
+})();
+</script>
+</body>
+</html>

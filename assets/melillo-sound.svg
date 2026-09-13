@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 162 48" width="162" height="48" role="img" aria-label="Melillo Sound">
+  <title>Melillo Sound</title>
+  <!-- Reproducción vectorial del logotipo de Melillo Sound.
+       El ícono es fiel al original; el wordmark está compuesto con una pila de
+       tipografías geométricas, no con la tipografía licenciada de la marca.
+       Para usar el archivo oficial, reemplaza este SVG conservando el nombre.
+       Variante para interfaz clara. -->
+  <rect x="0.0" y="8.0" width="60.0" height="32.05" rx="3.14" fill="#0E6E70"/>
+  <circle cx="12.43" cy="14.11" r="2.76" fill="none" stroke="#fff" stroke-width="1.19"/>
+  <circle cx="21.89" cy="14.11" r="2.76" fill="none" stroke="#fff" stroke-width="1.19"/>
+  <rect x="35.14" y="10.97" width="2.92" height="2.92" fill="#fff"/>
+  <rect x="39.35" y="10.97" width="2.92" height="2.92" fill="#fff"/>
+  <rect x="43.57" y="10.97" width="2.92" height="2.92" fill="#fff"/>
+  <rect x="47.78" y="10.97" width="2.92" height="2.92" fill="#fff"/>
+  <rect x="35.14" y="15.19" width="2.92" height="2.92" fill="#fff"/>
+  <rect x="39.35" y="15.19" width="2.92" height="2.92" fill="#fff"/>
+  <rect x="43.57" y="15.19" width="2.92" height="2.92" fill="#fff"/>
+  <rect x="47.78" y="15.19" width="2.92" height="2.92" fill="#fff"/>
+  <rect x="4.86" y="20.05" width="50.27" height="17.84" fill="#fff"/>
+  <rect x="10.68" y="20.05" width="2.73" height="10.7" fill="#0E6E70"/>
+  <rect x="11.78" y="30.76" width="0.54" height="7.14" fill="#0E6E70"/>
+  <rect x="17.86" y="20.05" width="2.73" height="10.7" fill="#0E6E70"/>
+  <rect x="18.96" y="30.76" width="0.54" height="7.14" fill="#0E6E70"/>
+  <rect x="26.14" y="20.05" width="0.54" height="17.84" fill="#0E6E70"/>
+  <rect x="32.23" y="20.05" width="2.73" height="10.7" fill="#0E6E70"/>
+  <rect x="33.32" y="30.76" width="0.54" height="7.14" fill="#0E6E70"/>
+  <rect x="39.41" y="20.05" width="2.73" height="10.7" fill="#0E6E70"/>
+  <rect x="40.5" y="30.76" width="0.54" height="7.14" fill="#0E6E70"/>
+  <rect x="46.59" y="20.05" width="2.73" height="10.7" fill="#0E6E70"/>
+  <rect x="47.68" y="30.76" width="0.54" height="7.14" fill="#0E6E70"/>
+  <g font-family="Poppins, Montserrat, Futura, 'Century Gothic', 'Avenir Next', Avenir, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="72" y="27.5" font-size="21.5" font-weight="700" letter-spacing="-0.6" fill="#06282B">Melillo</text>
+    <text x="73.5" y="41" font-size="9.6" font-weight="500" letter-spacing="5.2" fill="#06282B">SOUND</text>
+  </g>
+</svg>

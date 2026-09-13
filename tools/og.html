@@ -1,0 +1,40 @@
+<!-- Plantilla de la imagen social. Se rasteriza con tools/build-og.mjs. -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}
+body{
+  width:1200px; height:630px; display:flex; flex-direction:column; justify-content:space-between;
+  padding:66px 72px; background:linear-gradient(135deg,#0E6E70 0%,#0A4548 52%,#06282B 100%);
+  color:#F0FDFA; font:400 16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  position:relative; overflow:hidden;
+}
+body::before{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(closest-side at 82% 8%, rgba(79,195,192,.34), transparent 70%);
+}
+.z{position:relative}
+.kicker{font-size:19px; font-weight:800; letter-spacing:.22em; text-transform:uppercase; color:#6FD3D0}
+h1{font-size:76px; line-height:1.06; letter-spacing:-.03em; font-weight:750; max-width:16ch; margin:26px 0 22px}
+h1 em{font-style:normal; color:#6FD3D0}
+p{font-size:26px; line-height:1.45; color:#A8DEDC; max-width:30ch}
+.pie{display:flex; align-items:flex-end; justify-content:space-between; gap:30px}
+.barra{display:flex; height:30px; width:610px; border-radius:7px; overflow:hidden}
+.barra i{display:block; height:100%}
+.marca{font-size:21px; font-weight:700; color:#CFF3F1; letter-spacing:.02em; white-space:nowrap}
+.marca span{display:block; font-size:14px; font-weight:500; color:#79BFBC; letter-spacing:.16em; margin-top:3px}
+</style></head><body>
+  <div class="z">
+    <p class="kicker">Melillo Sound</p>
+    <h1>¿Tu guion <em>cabe</em> en la pauta?</h1>
+    <p>Predícelo al segundo — antes de pagar el estudio.</p>
+  </div>
+  <div class="z pie">
+    <div class="barra">
+      <i style="background:#EC4899; width:11%"></i>
+      <i style="background:#14B8A6; width:52%"></i>
+      <i style="background:#F59E0B; width:19%"></i>
+      <i style="background:#A855F7; width:10%"></i>
+      <i style="background:rgba(240,253,250,.17); width:8%"></i>
+    </div>
+    <div class="marca">EntraEnPauta<span>60s · 30s · 20s · 15s</span></div>
+  </div>
+</body></html>
