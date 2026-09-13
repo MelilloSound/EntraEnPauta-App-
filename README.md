@@ -9,7 +9,11 @@ y pausas por puntuación calibrado para el **español de Latinoamérica**.
 
 Desarrollada para **Melillo Sound**.
 
-**▶ Probarla en vivo:** https://claude.ai/code/artifact/1789ffbd-a072-4592-9af6-645ecb61ef2d
+**▶ En producción:** https://entraenpauta.melillosound.com — ver [`DEPLOY.md`](DEPLOY.md)
+**▶ Vista previa:** https://claude.ai/code/artifact/1789ffbd-a072-4592-9af6-645ecb61ef2d
+
+> **Beta cerrada.** La app se publica con `noindex` y con un enlace de feedback en el pie.
+> La lista para pasar a público está al final de [`DEPLOY.md`](DEPLOY.md).
 
 ---
 
@@ -185,7 +189,7 @@ que sale por la impresora.
 
 `tests/verify.mjs` cubre el motor de cálculo, las alertas, los veredictos, el render de
 la barra, el guion final los estilos por sección, la hoja A4 del guion final —incluida una impresión real a PDF—
-y el diseño responsivo (120 aserciones).
+y el diseño responsivo (141 aserciones, servidas por HTTP igual que en producción).
 
 ```bash
 npm install -D playwright   # si aún no está disponible

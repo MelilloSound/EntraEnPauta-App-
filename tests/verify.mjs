@@ -5,12 +5,33 @@
  */
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, resolve, join, extname, normalize } from 'node:path';
+import { mkdirSync, writeFileSync, readFileSync, statSync } from 'node:fs';
+import { createServer } from 'node:http';
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const url  = 'file://' + resolve(raiz, 'index.html');
 const conCapturas = process.argv.includes('--shots');
+
+/* La app se sirve por HTTP, no por file://, porque es lo que se parece a
+   producción: rutas relativas reales, localStorage con origen propio y
+   contexto seguro para el portapapeles. */
+const TIPOS = {
+  '.html':'text/html; charset=utf-8', '.svg':'image/svg+xml',
+  '.png':'image/png', '.json':'application/json', '.css':'text/css', '.js':'text/javascript',
+};
+const servidor = createServer((req, res) => {
+  const pedido = decodeURIComponent(req.url.split('?')[0]);
+  const rel = normalize(pedido === '/' ? '/index.html' : pedido).replace(/^(\.\.[/\\])+/, '');
+  const archivo = join(raiz, rel);
+  try {
+    if (!archivo.startsWith(raiz) || !statSync(archivo).isFile()) throw new Error('no');
+    res.writeHead(200, { 'Content-Type': TIPOS[extname(archivo)] || 'application/octet-stream' });
+    res.end(readFileSync(archivo));
+  } catch { res.writeHead(404); res.end('no encontrado'); }
+});
+await new Promise(r => servidor.listen(0, '127.0.0.1', r));
+const url = `http://127.0.0.1:${servidor.address().port}/index.html`;
+console.log(`  sirviendo en ${url}`);
 
 let ok = 0, fallos = 0;
 const cerca = (a, b, tol = 0.005) => Math.abs(a - b) <= tol;
@@ -554,6 +575,67 @@ check('el legal declara la aceleración en post',
   velocidades[1].includes('(Acelerado en Audio Post)') &&
   velocidades[2].includes('(Muy acelerado en Audio Post)'), JSON.stringify(velocidades));
 
+// ── 13. Listo para publicar ───────────────────────────────
+console.log('\n13. Listo para publicar');
+
+const cabeza = await page.evaluate(() => {
+  const m = n => document.querySelector(`meta[property="${n}"],meta[name="${n}"]`)?.content ?? null;
+  return {
+    ogTitle: m('og:title'), ogDesc: m('og:description'), ogUrl: m('og:url'),
+    ogImg: m('og:image'), ogAlt: m('og:image:alt'), ogTipo: m('og:type'),
+    twCard: m('twitter:card'), twImg: m('twitter:image'),
+    robots: m('robots'), titulo: document.title,
+    iconos: [...document.querySelectorAll('link[rel*="icon"]')].map(l => l.getAttribute('href')),
+  };
+});
+
+check('la página declara título Open Graph', !!cabeza.ogTitle, String(cabeza.ogTitle));
+check('la página declara descripción Open Graph', !!cabeza.ogDesc);
+check('og:type es website', cabeza.ogTipo === 'website');
+check('la imagen social tiene texto alternativo', !!cabeza.ogAlt);
+check('twitter:card usa tarjeta grande', cabeza.twCard === 'summary_large_image');
+
+// Una ruta relativa aquí no resuelve cuando WhatsApp o X leen la página.
+for (const [nombre, valor] of [['og:url', cabeza.ogUrl], ['og:image', cabeza.ogImg],
+                                ['twitter:image', cabeza.twImg]]) {
+  check(`${nombre} es una URL absoluta https`, /^https:\/\/[^/]+\//.test(valor || ''), String(valor));
+}
+check('las URL sociales apuntan al dominio de publicación',
+  [cabeza.ogUrl, cabeza.ogImg].every(u => u.includes('entraenpauta.melillosound.com')));
+
+check('la beta lleva noindex', cabeza.robots === 'noindex',
+  'si esto falla tras el lanzamiento, es lo esperado: quitar también esta aserción');
+check('hay favicon svg y respaldo png',
+  cabeza.iconos.some(h => h.endsWith('.svg')) && cabeza.iconos.some(h => h.endsWith('.png')),
+  JSON.stringify(cabeza.iconos));
+
+// Los assets referenciados tienen que existir de verdad en el servidor.
+for (const ruta of ['assets/favicon.svg', 'assets/favicon-32.png',
+                    'assets/og-entraenpauta.png', 'assets/melillo-sound.svg']) {
+  const estado = await page.evaluate(async r => (await fetch(r)).status, ruta);
+  check(`${ruta} se sirve correctamente`, estado === 200, `HTTP ${estado}`);
+}
+
+const og = await page.evaluate(async () => {
+  const i = new Image(); i.src = 'assets/og-entraenpauta.png';
+  await i.decode(); return { w: i.naturalWidth, h: i.naturalHeight };
+});
+check('la imagen social mide 1200×630', og.w === 1200 && og.h === 630, `${og.w}×${og.h}`);
+
+// Enlace de feedback de la beta.
+const beta = await page.evaluate(() => ({
+  version: document.getElementById('betaVer').textContent,
+  href: document.getElementById('feedbackLink').getAttribute('href'),
+  visible: !!document.getElementById('feedbackLink').offsetParent,
+}));
+check('el pie muestra la versión de la beta', /^beta \d+\.\d+\.\d+-beta\.\d+$/.test(beta.version), beta.version);
+check('el enlace de feedback es visible', beta.visible);
+check('el feedback abre un correo a Melillo Sound', beta.href.startsWith('mailto:stefano@melillosound.com'));
+check('el asunto del feedback lleva la versión',
+  decodeURIComponent(beta.href).includes('Feedback EntraEnPauta 1.0.0-beta.1'));
+check('el cuerpo del feedback incluye el navegador',
+  decodeURIComponent(beta.href).includes('Navegador:'));
+
 // ── Capturas opcionales ───────────────────────────────────────────────
 if (conCapturas) {
   const dir = resolve(raiz, 'tests/output');
@@ -577,5 +659,6 @@ if (conCapturas) {
 }
 
 await navegador.close();
+servidor.close();
 console.log(`\n${'─'.repeat(46)}\n  ${ok} pruebas OK · ${fallos} fallos\n`);
 process.exit(fallos ? 1 : 0);

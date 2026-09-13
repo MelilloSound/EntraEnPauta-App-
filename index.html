@@ -5,7 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EntraEnPauta · Melillo Sound</title>
 <meta name="description" content="Predice si tu guion publicitario cabe en la pauta antes de ir al estudio. Modelo predictivo de duración de locución calibrado para español de Latinoamérica.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎙️</text></svg>">
+
+<!-- ⚠ BETA CERRADA: quitar esta línea el día del lanzamiento público.
+     Es el primer punto de la lista en DEPLOY.md. Mientras esté, Google no indexa. -->
+<meta name="robots" content="noindex">
+
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="alternate icon" type="image/png" href="assets/favicon-32.png">
+
+<!-- Tarjeta al compartir el enlace. Las URL han de ser absolutas: una ruta
+     relativa no resuelve cuando WhatsApp o X leen la página. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Melillo Sound">
+<meta property="og:locale" content="es_LA">
+<meta property="og:title" content="EntraEnPauta · ¿Tu guion cabe en la pauta?">
+<meta property="og:description" content="Predice al segundo si tu guion publicitario cabe en 60, 30, 20 o 15 segundos, antes de pagar el estudio. Gratis, de Melillo Sound.">
+<meta property="og:url" content="https://entraenpauta.melillosound.com/">
+<meta property="og:image" content="https://entraenpauta.melillosound.com/assets/og-entraenpauta.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EntraEnPauta, predictor de duración para guiones publicitarios de Melillo Sound.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EntraEnPauta · ¿Tu guion cabe en la pauta?">
+<meta name="twitter:description" content="Predice al segundo si tu guion publicitario cabe en 60, 30, 20 o 15 segundos, antes de pagar el estudio.">
+<meta name="twitter:image" content="https://entraenpauta.melillosound.com/assets/og-entraenpauta.png">
 <style>
 /* ---------- Tokens: claro por defecto ---------- */
 :root{
@@ -307,6 +330,14 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
 .cta-b{background:rgba(240,253,250,.1); color:#F0FDFA; border:1px solid rgba(240,253,250,.3)}
 .cta-b:hover{background:rgba(240,253,250,.18)}
 .creditos{text-align:center; font-size:11.5px; color:var(--txt-3); padding:0 16px 18px; line-height:1.7}
+.beta{display:inline-flex; align-items:center; gap:6px; margin-top:5px}
+.beta b{
+  background:color-mix(in srgb, var(--acento) 16%, transparent); color:var(--acento);
+  border-radius:999px; padding:1px 8px; font-size:10px; font-weight:800;
+  letter-spacing:.08em; text-transform:uppercase;
+}
+.beta a{color:var(--txt-2); text-decoration:underline; text-underline-offset:2px}
+.beta a:hover{color:var(--acento)}
 
 /* ---------- Responsive ---------- */
 @media (max-width:720px){
@@ -577,7 +608,11 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
 </div>
 <p class="creditos">
   EntraEnPauta · Modelo predictivo de duración de locución calibrado para español de Latinoamérica.<br>
-  Las duraciones son una estimación: la interpretación final del locutor puede variar.
+  Las duraciones son una estimación: la interpretación final del locutor puede variar.<br>
+  <span class="beta">
+    <b id="betaVer">beta</b> · ¿algo no cuadra?
+    <a id="feedbackLink" href="#">Cuéntanos</a>
+  </span>
 </p>
 
 <!-- ============ 7. DOCK: BARRA + DIAGNÓSTICO ============ -->
@@ -639,6 +674,9 @@ dialog::backdrop{background:rgba(4,8,14,.62); backdrop-filter:blur(3px)}
    CONSTANTES DE CALIBRACIÓN
    Todo lo que se puede recalibrar vive aquí arriba, en un solo lugar.
    ===================================================================== */
+
+/* Build visible en el pie: los reportes de la beta dicen de qué versión hablan. */
+const VERSION = "1.0.0-beta.1";
 
 /* Datos de contacto del CTA del footer. */
 const CONTACTO = {
@@ -1329,6 +1367,12 @@ $("ctaMail").href = "mailto:" + CONTACTO.email +
   "?subject=" + encodeURIComponent("Proyecto de audio publicitario") +
   "&body="    + encodeURIComponent("Hola Melillo Sound,\n\nMe gustaría cotizar un proyecto de audio.\n\n");
 $("ctaMail").textContent = "✉️ " + CONTACTO.email;
+$("betaVer").textContent = "beta " + VERSION;
+$("feedbackLink").href = "mailto:" + CONTACTO.email +
+  "?subject=" + encodeURIComponent("Feedback EntraEnPauta " + VERSION) +
+  "&body="    + encodeURIComponent(
+    "\n\n\u2014\nVersión: " + VERSION + "\nNavegador: " + navigator.userAgent + "\n");
+
 $("ctaWa").href = "https://wa.me/" + CONTACTO.whatsapp +
   "?text=" + encodeURIComponent("Hola Melillo Sound, vengo de EntraEnPauta y quiero cotizar un proyecto.");
 
