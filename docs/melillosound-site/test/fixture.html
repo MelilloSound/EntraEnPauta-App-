@@ -1,0 +1,27 @@
+<!doctype html><meta charset="utf-8">
+<style>
+ body{margin:0;font-family:system-ui}
+ /* reproduce el sistema vigente */
+ .sqs-html-content h1{font-size:clamp(36px,5.6vw,92px);margin:0;line-height:1.02}
+ .sqs-html-content h2{font-size:clamp(38px,7.4vw,118px);margin:0;line-height:1.02}
+ .sqs-html-content h2,.sqs-html-content h1{padding-left:18px;border-left:2px solid #0199A1}
+ /* la condición que produce «Convers / emos» */
+ h1,h2{overflow-wrap:break-word;word-break:break-word}
+ .fluid-engine{display:grid;grid-template-columns:repeat(24,1fr);gap:0}
+ .fe-block{min-width:0}
+ .hero{grid-column:1/25}          /* ~1440px */
+ .faq{grid-column:1/10}           /* ~555px  */
+ .conv{grid-column:1/8}           /* ~448px  */
+ .agn{grid-column:1/10}           /* ~549px  */
+ /* BLOQUE 33 del paquete: sin esto el titular se parte en silencio */
+ .b33 .sqs-html-content h1,.b33 .sqs-html-content h2{
+   overflow-wrap:normal!important;word-break:normal!important;hyphens:manual!important}
+</style>
+<div class="fluid-engine">
+  <div class="fe-block hero"><div class="sqs-html-content"><h2>Sonido que hace<br>sentir la marca</h2></div></div>
+  <div class="fe-block faq"><div class="sqs-html-content"><h2>Algunas preguntas frecuentes</h2></div></div>
+  <div class="fe-block conv"><div class="sqs-html-content"><h2>Conversemos</h2></div></div>
+  <div class="fe-block agn"><div class="sqs-html-content"><h2>Conversemos</h2></div></div>
+  <div class="fe-block hero"><div class="sqs-html-content"><h3 class="ms-num"><span>01</span></h3></div></div>
+  <div class="fe-block agn"><div class="sqs-html-content"><p>Mientras antes entremos, mejor: el sonido se piensa con el guion, no después.</p></div></div>
+</div>

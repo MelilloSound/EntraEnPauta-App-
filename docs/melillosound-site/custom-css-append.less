@@ -1,0 +1,66 @@
+/* ============================================================================
+   BLOQUES 32–35 · añadir AL FINAL del Custom CSS (/config/pages/custom-css)
+   ----------------------------------------------------------------------------
+   OJO: esta hoja se compila como LESS. Todo calc() con una operación va
+   escapado ~"calc(...)". Si tras guardar
+       getComputedStyle(document.documentElement).getPropertyValue('--ms-accent')
+   vuelve vacío, la hoja NO compiló: revertir de inmediato.
+   ========================================================================== */
+
+/* ===== 32 · RITMO ENTRE SECCIONES ==========================================
+   Antes: clamp(56px,10.5vw,168px) -> 150px por lado a 1440 (~300px entre dos
+   secciones consecutivas). Ahora ~93px por lado (~190px entre secciones), el
+   punto medio entre los 66px originales y los 150px actuales.
+   Este bloque SUSTITUYE al padding-block del bloque 23 por orden de cascada.
+   ========================================================================== */
+section.page-section{padding-block:~"clamp(44px, 6.5vw, 104px)"!important}
+
+/* ===== 33 · TITULARES: NUNCA PARTIR UNA PALABRA ============================
+   Complemento del script __ms4. Sin esto, un titular que no cabe se parte
+   («Convers / emos») en vez de desbordar, y la red de seguridad del script
+   —que mide scrollWidth— no puede detectarlo.
+   ========================================================================== */
+.sqs-html-content h1,
+.sqs-html-content h2{
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  hyphens:manual!important}
+
+/* ===== 34 · REJILLA DE LOGOS DE MARCAS =====================================
+   G2 parte 1 (tapa el síntoma hasta que estén los PNG con transparencia):
+   · el hover volvía a mix-blend-mode:normal y reaparecía el cuadrado blanco
+     del JPEG -> se mantiene multiply también en hover
+   · los logos se veían chicos y perdidos en celdas de ~197x132 -> 66px a 86px
+   ========================================================================== */
+.gallery-grid img,
+.gallery-grid-item img{
+  max-height:86px!important;
+  width:auto!important;
+  object-fit:contain!important}
+
+.sqs-gallery img:hover,
+.gallery-grid-item:hover img,
+.gallery-masonry-item:hover img{
+  mix-blend-mode:multiply!important;   /* era normal: de ahí el cuadrado blanco */
+  filter:none!important;
+  opacity:1!important;
+  transform:translateY(-3px)}
+
+/* ===== 35 · LÍNEA DE CIERRE DEL PROCESO ====================================
+   A1 y M1. El bloque YA es full width (gr18/20 gc2/26, 1212px); lo que
+   encogía el texto era la regla global .sqs-html-content p{max-width:60ch}.
+   La clase .ms-closer la pone el script __ms4 por coincidencia de texto.
+   ========================================================================== */
+.sqs-html-content p.ms-closer{
+  max-width:none!important;
+  font-size:~"clamp(19px, 1.6vw, 24px)"!important;
+  line-height:1.5!important;
+  color:var(--ms-ink)!important;
+  padding-top:~"clamp(18px, 2vw, 30px)";
+  border-top:1px solid rgba(11,22,22,.18)}
+
+.ms-closer-block{width:100%}
+
+.ms-on-dark .sqs-html-content p.ms-closer{
+  color:var(--ms-chalk)!important;
+  border-top-color:rgba(233,240,238,.22)}

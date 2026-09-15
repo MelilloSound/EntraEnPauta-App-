@@ -1,0 +1,37 @@
+<!-- ===========================================================================
+     /nosotros  ·  Pages → Nosotros → engranaje → Advanced →
+                   PAGE HEADER CODE INJECTION
+     ---------------------------------------------------------------------------
+     CSS CRUDO: no pasa por LESS, aquí NO se escapa con ~"...".
+
+     Quita la foto de stock del piano (también es fondo de sección, no bloque)
+     y le da a la primera sección el mismo tratamiento oscuro que el hero del
+     home, para que /nosotros se lea igual que el resto del sitio.
+     ========================================================================= -->
+<style>
+section.page-section:first-of-type .section-background img,
+section.page-section:first-of-type .section-background video,
+section.page-section:first-of-type .section-background .sqs-video-background,
+section.page-section:first-of-type .section-background .sqs-image-shape-container-element{
+  display:none!important}
+
+section.page-section:first-of-type .section-background{
+  background-image:radial-gradient(120% 90% at 18% 0%,
+    rgba(1,153,161,.20) 0%, rgba(1,153,161,0) 58%)!important;
+  background-color:var(--ms-void,#06100F)!important}
+
+section.page-section:first-of-type h1,
+section.page-section:first-of-type h2,
+section.page-section:first-of-type h3{color:var(--ms-chalk,#E9F0EE)!important}
+
+section.page-section:first-of-type p,
+section.page-section:first-of-type li{color:var(--ms-mist,#7E9694)!important}
+
+/* La sección mide 926px de alto porque estaba dimensionada para sostener la
+   foto. Sin la foto queda mucho vacío. Descomentar SOLO después de mirarlo
+   con la imagen ya quitada, y volver a correr el probe: bajar la altura de una
+   sección del Fluid Engine puede reactivar solapes.
+section.page-section:first-of-type{min-height:0!important}
+section.page-section:first-of-type .fluid-engine{--row-height-scaling-factor:.016!important}
+*/
+</style>

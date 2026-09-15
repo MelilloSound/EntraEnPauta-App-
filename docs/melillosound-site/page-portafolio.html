@@ -1,0 +1,51 @@
+<!-- ===========================================================================
+     /portafolio  ·  Pages → Portafolio → engranaje → Advanced →
+                     PAGE HEADER CODE INJECTION
+     ---------------------------------------------------------------------------
+     IMPORTANTE: esto es CSS CRUDO, no pasa por LESS. Aquí NO se escribe ~"..."
+     (rompería la regla). El calc() y el clamp() van tal cual.
+
+     Qué hace:
+     · quita la imagen de stock de Unsplash, que es FONDO DE SECCIÓN y no un
+       bloque (por eso no se puede borrar desde el editor de bloques)
+     · le da a SEC1 el tratamiento oscuro del hero del home
+     · fusiona SEC1 («El trabajo») con SEC2 (la bajada) para que lean como una
+       sola unidad: la bajada queda como lead del titular
+     ========================================================================= -->
+<style>
+/* --- 1 · fuera la imagen de stock --------------------------------------- */
+section.page-section:first-of-type .section-background img,
+section.page-section:first-of-type .section-background video,
+section.page-section:first-of-type .section-background .sqs-video-background,
+section.page-section:first-of-type .section-background .sqs-image-shape-container-element{
+  display:none!important}
+
+/* --- 2 · tratamiento oscuro del hero ------------------------------------ */
+/* .section-background NO es hijo directo de la sección: vive dentro de
+   .section-border. Por eso el selector es descendiente, no hijo (>).        */
+section.page-section:first-of-type .section-background,
+section.page-section:nth-of-type(2) .section-background{
+  background-image:none!important;
+  background-color:var(--ms-void,#06100F)!important}
+
+section.page-section:first-of-type .section-background{
+  background-image:radial-gradient(120% 90% at 18% 0%,
+    rgba(1,153,161,.20) 0%, rgba(1,153,161,0) 58%)!important}
+
+/* --- 3 · texto sobre oscuro --------------------------------------------- */
+section.page-section:first-of-type h1,
+section.page-section:first-of-type h2,
+section.page-section:first-of-type h3,
+section.page-section:nth-of-type(2) h1,
+section.page-section:nth-of-type(2) h2,
+section.page-section:nth-of-type(2) h3{color:var(--ms-chalk,#E9F0EE)!important}
+
+section.page-section:first-of-type p,
+section.page-section:first-of-type li,
+section.page-section:nth-of-type(2) p,
+section.page-section:nth-of-type(2) li{color:var(--ms-mist,#7E9694)!important}
+
+/* --- 4 · fusión de las dos secciones ------------------------------------ */
+section.page-section:first-of-type{padding-bottom:0!important}
+section.page-section:nth-of-type(2){padding-top:0!important}
+</style>
