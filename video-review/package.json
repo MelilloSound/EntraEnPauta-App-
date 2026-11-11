@@ -1,0 +1,15 @@
+{
+  "name": "video-review",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Review and edit your videos, pin comments to exact moments, copy them as one prompt for Claude, and export AAF for Pro Tools.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/run.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}

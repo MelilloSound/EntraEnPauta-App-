@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Video Review</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235b8cff'/%3E%3Cpath d='M12 9v14l11-7z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <div class="home">
+    <header class="home-top">
+      <div class="brand">
+        <div class="brand-mark" id="logo"></div>
+        <h1>Video Review</h1>
+      </div>
+      <span class="pill off" id="ffmpeg" title="">Checking tools…</span>
+      <button class="btn" id="linkBtn" type="button">Add a folder…</button>
+      <button class="btn primary" id="newBtn" type="button">New project</button>
+    </header>
+
+    <div class="home-sub">
+      <span>Projects folder</span>
+      <code id="rootPath">…</code>
+      <button class="btn small ghost" id="revealRoot" type="button">Show in Finder</button>
+    </div>
+    <p class="muted home-hint">Newest first. Drop video files anywhere on this page to start a project.</p>
+
+    <main id="projects" aria-live="polite"></main>
+  </div>
+  <div class="drop-veil">Drop to add these files to a new project</div>
+  <input type="file" id="filePick" multiple accept="video/*,audio/*,.mov,.mkv,.mts" class="hidden">
+
+  <script src="/js/common.js"></script>
+  <script src="/js/home.js"></script>
+</body>
+</html>

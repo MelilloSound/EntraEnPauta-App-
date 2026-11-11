@@ -221,4 +221,13 @@ lo sigue mientras el usuario no elija tema desde el header.
 
 ---
 
+## Otras herramientas del repo
+
+[`video-review/`](video-review/README.md) — app local (en inglés) para revisar y editar videos con Claude:
+notas fijadas en el momento y el punto exacto del cuadro, edición básica, botón «Copy moments»
+que convierte todo en un solo prompt, y exportación AAF para mezclar en Pro Tools. Se inicia con
+`node server.js` dentro de esa carpeta y nunca borra archivos.
+
+---
+
 © Melillo Sound. Las duraciones son una estimación: la interpretación final del locutor puede variar.

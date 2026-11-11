@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project · Video Review</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235b8cff'/%3E%3Cpath d='M12 9v14l11-7z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="icon-btn" href="/" id="backBtn" title="All projects" aria-label="All projects"></a>
+      <div class="title">
+        <strong id="projName">…</strong>
+        <span id="projPath"></span>
+      </div>
+      <span class="save-state" id="saveState" aria-live="polite"></span>
+      <button class="btn" id="exportBtn" type="button" aria-haspopup="menu"></button>
+      <button class="btn primary" id="copyBtn" type="button" title="Turn every note and edit into one prompt for Claude"></button>
+    </header>
+
+    <nav class="clipbar" id="clipbar" aria-label="Clips"></nav>
+
+    <div class="workspace">
+      <section class="viewer" aria-label="Player">
+        <div class="stage-wrap" id="stageWrap">
+          <div class="stage" id="stage">
+            <div class="layer" id="textLayer"></div>
+            <div class="layer" id="pinLayer"></div>
+            <div class="hint">Click the picture to pin a note on that spot · drag to mark an area</div>
+          </div>
+        </div>
+        <div class="transport">
+          <button class="icon-btn" id="prevFrame" title="Back one frame (←)" aria-label="Back one frame"></button>
+          <button class="icon-btn" id="playBtn" title="Play / pause (Space)" aria-label="Play"></button>
+          <button class="icon-btn" id="nextFrame" title="Forward one frame (→)" aria-label="Forward one frame"></button>
+          <span class="time" id="time"><b>00:00.00</b> / 00:00.00</span>
+          <div class="seg" role="group" aria-label="What to play">
+            <button type="button" id="modeEdit" aria-pressed="true" title="Play your edited version">My edit</button>
+            <button type="button" id="modeOrig" aria-pressed="false" title="Play the original file, untouched">Original</button>
+          </div>
+          <span class="spacer"></span>
+          <span class="muted" style="font-size:12px">Monitor</span>
+          <input type="range" class="vol" id="monitor" min="0" max="1" step="0.01" value="1" aria-label="Monitor volume">
+          <button class="btn note" id="addNoteBtn" type="button" title="Add a note at the playhead (C)"></button>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="side-section">
+          <div class="side-head"><h2 id="inspTitle">Clip</h2></div>
+          <div class="inspector" id="inspector"></div>
+        </div>
+        <div class="side-head">
+          <h2 id="notesTitle">Notes</h2>
+          <label class="check muted" style="font-size:12px"><input type="checkbox" id="showDone"> Show done</label>
+        </div>
+        <div class="notes" id="notes" aria-live="polite"></div>
+      </aside>
+    </div>
+
+    <section class="editor" aria-label="Timeline">
+      <div class="toolbar" id="toolbar">
+        <button class="btn small edit-tool" id="splitBtn" type="button" title="Split at the playhead (S)"></button>
+        <button class="btn small edit-tool" id="deleteBtn" type="button" title="Remove the selected piece from the timeline (Delete). Your file is not touched."></button>
+        <span class="sep"></span>
+        <button class="btn small edit-tool" id="textBtn" type="button" title="Add text at the playhead (T)"></button>
+        <button class="btn small edit-tool" id="audioBtn" type="button" title="Add music or voice-over (A)"></button>
+        <button class="btn small edit-tool" id="clipBtn" type="button" title="Insert another clip at the playhead"></button>
+        <span class="sep"></span>
+        <button class="icon-btn edit-tool" id="undoBtn" type="button" title="Undo (⌘Z)" aria-label="Undo"></button>
+        <button class="icon-btn edit-tool" id="redoBtn" type="button" title="Redo (⇧⌘Z)" aria-label="Redo"></button>
+        <button class="btn small ghost edit-tool" id="resetBtn" type="button" title="Start over from the original clip"></button>
+        <div class="zoom">
+          <span class="muted" style="font-size:12px">Zoom</span>
+          <input type="range" id="zoom" min="0" max="100" value="0" aria-label="Timeline zoom">
+          <button class="btn small ghost" id="fitBtn" type="button" title="Fit the whole timeline">Fit</button>
+        </div>
+      </div>
+      <div class="tl">
+        <div class="tl-labels" id="tlLabels"></div>
+        <div class="tl-scroll" id="tlScroll">
+          <div class="tl-inner" id="tlInner"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <input type="file" id="audioPick" accept="audio/*,video/*,.wav,.aif,.aiff,.mp3,.m4a" class="hidden">
+  <input type="file" id="clipPick" accept="video/*,.mov,.mkv,.mts" multiple class="hidden">
+
+  <script src="/js/common.js"></script>
+  <script src="/js/timeline.js"></script>
+  <script src="/js/prompt.js"></script>
+  <script src="/js/media-cache.js"></script>
+  <script src="/js/project.js"></script>
+</body>
+</html>
