@@ -10,6 +10,10 @@ A small app that runs on your computer for reviewing and editing your videos wit
 
 It's plain HTML and a small Node server with no dependencies, and it **never deletes, moves or overwrites your files**.
 
+## Easiest way to start
+
+Double-click **Start Video Review.command** (Mac) or **Start Video Review.bat** (Windows). The first time, it installs Node.js if needed, then opens the app in your browser. On a Mac, if it says the file is from an unidentified developer, right-click it and choose **Open**.
+
 ---
 
 ## Start it
